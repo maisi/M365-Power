@@ -1,0 +1,128 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="maisi.M365.power.main.DeviceActivity"
+    android:keepScreenOn="true">
+
+    <TableLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+        <TableRow android:layout_width="match_parent">
+
+            <Button
+                android:id="@+id/connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="connect"
+                android:text="re-/connect" />
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="disconnected"
+                android:textSize="20sp"/>
+        </TableRow>
+        <TableRow>
+            <Button
+                android:id="@+id/reset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="reset"
+                android:text="reset stats" />
+            <TextView
+                android:id="@+id/life"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="100 %"
+                android:textSize="20sp"/>
+
+
+        </TableRow>
+
+        <TableRow>
+            <Button
+                android:id="@+id/read_name_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="readName"
+                android:text="Start Handler" />
+
+            <Button
+                android:id="@+id/stop_handler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="stopHandler"
+                android:text="Stop Handler" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/voltageMeter"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="40.00 V"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/ampMeter"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="10.00 A"
+                android:textSize="20sp"/>
+
+        </TableRow>
+
+
+
+        <TableRow>
+            <TextView
+                android:id="@+id/minPowerView"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="min Power: -100 W"
+                android:textSize="20sp"
+                android:paddingRight="30dp"
+                android:paddingBottom="10dp"/>
+
+            <TextView
+                android:id="@+id/maxPowerView"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="max Power: 500 W"
+                android:textSize="20sp" />
+
+        </TableRow>
+
+        <TableRow>
+            <TextView
+                android:id="@+id/recoveredPower"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="recovered: 100 Wh"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/spentPower"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="spent: 100 Wh"
+                android:textSize="20sp"/>
+
+
+        </TableRow>
+
+
+
+
+    </TableLayout>
+
+    <TextView
+        android:id="@+id/powerMeter"
+        android:layout_width="wrap_content"
+        android:layout_height="438dp"
+        android:text="500W"
+        android:textSize="140sp" />
+
+</LinearLayout>

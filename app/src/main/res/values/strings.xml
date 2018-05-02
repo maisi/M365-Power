@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">M365 Power</string>
+    <string name="ble_not_supported">BLE not supported on this device</string>
+    <string name="bt_unavailable">Bluetooth unavailable</string>
+    <string name="bt_disabled">Bluetooth disabled, turn on and restart</string>
+    <!-- Scan -->
+    <string name="action_scan">SCAN</string>
+    <string name="action_stop">STOP</string>
+    <!-- Device -->
+    <string name="read_manufacturer_name">Read Manufacturer Name</string>
+    <string name="read_serial_number">Read Serial Number</string>
+    <string name="write_alert_level">Write Alert Level</string>
+</resources>
