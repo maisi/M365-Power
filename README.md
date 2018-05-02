@@ -1,10 +1,7 @@
-BLERW
+M365 Power
 =====
 
-Android BLE Scan and Characteristics Read/Write Example
-
-![Figure 1 ScanActivity for BLE Scan](etc/BLERW_cap01.png) 
-![Figure 2 DeviceActivity for Read/Write Characteristics](etc/BLERW_cap02.png)
+A little app to display and log (upcoming) data from the Xiaomi M365.
 
 # License
 
