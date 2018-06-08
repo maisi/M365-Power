@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="maisi.M365.power.main.DeviceActivity"
+    tools:context="maisi.M365.power.main.DeviceActivity2"
     android:keepScreenOn="true">
 
     <TableLayout android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:onClick="reset"
                 android:text="reset stats" />
-            <TextView
+            <maisi.M365.power.main.SpecialTextView
                 android:id="@+id/life"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
@@ -58,14 +58,16 @@
 
         <TableRow>
 
-            <TextView
+            <maisi.M365.power.main.SpecialTextView
+                xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/voltageMeter"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="40.00 V"
                 android:textSize="20sp"/>
 
-            <TextView
+            <maisi.M365.power.main.SpecialTextView
+                xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/ampMeter"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

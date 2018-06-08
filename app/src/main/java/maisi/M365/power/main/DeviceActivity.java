@@ -28,10 +28,9 @@ import maisi.M365.power.util.NbMessage;
 
 public class DeviceActivity extends Activity {
 
-    public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
-    public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
+
     public static final String CHAR_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-    private final static String TAG = DeviceActivity.class.getSimpleName();
+    //private final static String TAG = DeviceActivity.class.getSimpleName();
     public static String CHAR_WRITE = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; //WRITE
     public static String CHAR_READ = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; //READ
     public static String GET_NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb";
@@ -137,8 +136,8 @@ public class DeviceActivity extends Activity {
         ;
 
         final Intent intent = getIntent();
-        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+        //mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+        //mDeviceAddress = intent.getStringExtra(Constants.EXTRAS_DEVICE_ADDRESS);
 
         rxBleClient = RxBleClient.create(this);
         bleDevice = rxBleClient.getBleDevice(mDeviceAddress);
