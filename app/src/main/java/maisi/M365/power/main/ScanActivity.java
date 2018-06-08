@@ -124,11 +124,11 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
             public void onItemClick(AdapterView<?> adapterview, View view, int position, long id) {
                 ScannedDevice item = mDeviceAdapter.getItem(position);
                 if (item != null) {
-                    Intent intent = new Intent(view.getContext(), DeviceActivity2.class);
+                    Intent intent = new Intent(view.getContext(), DeviceActivity.class);
                     BluetoothDevice selectedDevice = item.getDevice();
                     //intent.putExtra(DeviceActivity.EXTRA_BLUETOOTH_DEVICE, selectedDevice);
-                    intent.putExtra(DeviceActivity2.EXTRAS_DEVICE_NAME, selectedDevice.getName());
-                    intent.putExtra(DeviceActivity2.EXTRAS_DEVICE_ADDRESS, selectedDevice.getAddress());
+                    intent.putExtra(DeviceActivity.EXTRAS_DEVICE_NAME, selectedDevice.getName());
+                    intent.putExtra(DeviceActivity.EXTRAS_DEVICE_ADDRESS, selectedDevice.getAddress());
                     startActivity(intent);
 
                     // stop before change Activity

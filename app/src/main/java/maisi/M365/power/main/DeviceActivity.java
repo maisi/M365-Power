@@ -14,106 +14,62 @@ import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.RxBleConnection;
 import com.polidea.rxandroidble2.RxBleDevice;
 
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import maisi.M365.power.main.Requests.AmpereRequest;
+import maisi.M365.power.main.Requests.BatteryLifeRequest;
+import maisi.M365.power.main.Requests.VoltageRequest;
 import maisi.M365.power.util.HexString;
-import maisi.M365.power.util.NbCommands;
-import maisi.M365.power.util.NbMessage;
 
-public class DeviceActivity extends Activity {
+public class DeviceActivity extends Activity{
 
+    public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
+    public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
-    public static final String CHAR_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-    //private final static String TAG = DeviceActivity.class.getSimpleName();
-    public static String CHAR_WRITE = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; //WRITE
-    public static String CHAR_READ = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; //READ
-    public static String GET_NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb";
-    public static String GET_NAME_CHAR = "00002a00-0000-1000-8000-00805f9b34fb";
+    private final static String TAG = DeviceActivity.class.getSimpleName();
 
-    RxBleClient rxBleClient;
-    private String mDeviceName;
-    private String mDeviceAddress;
-    private RxBleDevice bleDevice;
+    private RxBleClient rxBleClient;
     private Observable<RxBleConnection> connectionObservable;
     private Disposable connectionDisposable;
     private RxBleConnection connection;
-    private TextView voltageMeter;
-    private TextView ampMeter;
+
+    private String mDeviceName;
+    private String mDeviceAddress;
+    private RxBleDevice bleDevice;
+
+    private SpecialTextView voltageMeter;
+    private SpecialTextView ampMeter;
+    private SpecialTextView life;
     private TextView powerMeter;
     private TextView minPowerView;
     private TextView maxPowerView;
     private TextView recoveredPower;
     private TextView spentPower;
     private TextView time;
-    private TextView life;
 
-    private double currentAmp = -1d;
-    private double currentVolt = -1d;
 
-    private int maxPower = 0;
-    private int minPower = -0;
+    //DelayQueue<IRequest> requestQueue = new DelayQueue();
+    private Queue<IRequest> requestQueue= new LinkedBlockingQueue();
+    private List<IRequest> requestTypes = new ArrayList<>();
+    private List<SpecialTextView> textViews = new ArrayList<>();
 
-    private double recoverd = 0.0; //watt hours
-    private double spent = 0.0; //watt hours
-
-    private long lastTime;
-
+    private byte[] lastResponse;
 
     private Handler handler = new Handler();
     private Handler handler1 = new Handler();
-
-
-    private Runnable runnableMeta = new Runnable() {
-        @Override
-        public void run() {
-            if(isConnected()) {
-                handler.removeCallbacksAndMessages(null);
-                handler.postDelayed(updateAmpsRunnable, 100);
-                handler.postDelayed(updateVoltageBatterylife, 100);
-                handler.postDelayed(updateVoltageRunnable, 1000);
-                handler1.postDelayed(this, 10000);
-            }
-        }
-    };
-
-    private Runnable updateAmpsRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if(isConnected()) {
-                setupNotificationAndSend();
-                updateAmps();
-                handler.postDelayed(updateVoltageRunnable, 100);
-                handler.postDelayed(this, 200);
-            }
-        }
-    };
-
-    private Runnable updateVoltageRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if(isConnected()) {
-                setupNotificationAndSend();
-                updateVoltage();
-                //handler.postDelayed(this, 200);
-            }
-        }
-    };
-
-    private Runnable updateVoltageBatterylife = new Runnable() {
-        @Override
-        public void run() {
-            setupNotificationAndSend();
-            updateBatteryLife();
-            handler.postDelayed(this, 5150);
-        }
-    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,28 +77,108 @@ public class DeviceActivity extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_device);
 
-        voltageMeter = findViewById(R.id.voltageMeter);
-        ampMeter = findViewById(R.id.ampMeter);
-        powerMeter = findViewById(R.id.powerMeter);
-        minPowerView = findViewById(R.id.minPowerView);
-        ;
-        maxPowerView = findViewById(R.id.maxPowerView);
-        ;
-        recoveredPower = findViewById(R.id.recoveredPower);
-        ;
-        spentPower = findViewById(R.id.spentPower);
-        time = findViewById(R.id.time);
-        life = findViewById(R.id.life);
-        ;
+        voltageMeter = this.findViewById(R.id.voltageMeter);
+        voltageMeter.setType(RequestType.VOLTAGE);
+        textViews.add(voltageMeter);
+
+        ampMeter = this.findViewById(R.id.ampMeter);
+        ampMeter.setType(RequestType.AMEPERE);
+        textViews.add(ampMeter);
+
+        powerMeter = this.findViewById(R.id.powerMeter);
+
+        minPowerView = this.findViewById(R.id.minPowerView);
+
+        maxPowerView = this.findViewById(R.id.maxPowerView);
+
+        recoveredPower = this.findViewById(R.id.recoveredPower);
+
+        spentPower = this.findViewById(R.id.spentPower);
+        time = this.findViewById(R.id.time);
+        life = this.findViewById(R.id.life);
+        life.setType(RequestType.BATTERYLIFE);
+        textViews.add(life);
+
 
         final Intent intent = getIntent();
-        //mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-        //mDeviceAddress = intent.getStringExtra(Constants.EXTRAS_DEVICE_ADDRESS);
+        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         rxBleClient = RxBleClient.create(this);
         bleDevice = rxBleClient.getBleDevice(mDeviceAddress);
         connectionObservable = prepareConnectionObservable();
+
+        requestTypes.add(new VoltageRequest());
+        requestTypes.add(new AmpereRequest());
+        requestTypes.add(new BatteryLifeRequest());
     }
+    
+    private void setupNotificationAndSend() {
+
+        connection.setupNotification(UUID.fromString(Constants.CHAR_READ))
+                .doOnNext(notificationObservable -> {
+                    //Log.d(TAG, "notification has been setup");
+                })
+                .flatMap(notificationObservable -> notificationObservable) // <-- Notification has been set up, now observe value changes.
+                .timeout(200, TimeUnit.MILLISECONDS)
+                .onErrorResumeNext(Observable.empty())
+                .subscribe(
+                        bytes -> {
+                            updateUI(bytes);
+                        }
+
+                );
+    }
+
+    private void updateUI(byte[] bytes) {
+        //if(!Arrays.equals(lastResponse,bytes)){
+            lastResponse=bytes;
+            Statistics.countRespnse();
+            //Log.d(TAG,"updateUI");
+            String[] hexString = new String[bytes.length];
+            for (int i = 0; i < bytes.length; i++) {
+                byte[] temp = new byte[1];
+                temp[0] = bytes[i];
+                hexString[i] = HexString.bytesToHex(temp);
+            }
+            String requestBit = hexString[5];
+
+
+            for(IRequest e:requestTypes){
+                //Log.d(TAG,"Type:"+e.getRequestBit()+" "+requestBit);
+                if(e.getRequestBit().equals(requestBit)){
+                    //Log.d(TAG,"match");
+                    String temp = e.handleResponse(hexString);
+                    for(SpecialTextView f:textViews){
+                        if(f.getType()==e.getRequestType()){
+                            runOnUiThread(() -> f.setText(temp));
+                        }
+                    }
+                }
+            }
+            //update on each response
+            Thread t = new Thread() {
+                public void run() {
+                    runOnUiThread(() -> {
+                        powerMeter.setText((int)Statistics.getPower()+"W");
+                        DecimalFormat df = new DecimalFormat("#.####");
+                        df.setRoundingMode(RoundingMode.CEILING);
+
+                        minPowerView.setText("min Power: " + (int)Statistics.getMinPower() + "W");
+                        maxPowerView.setText("max Power: " + (int)Statistics.getMaxPower() + "W");
+                        spentPower.setText("spent: " + df.format(Statistics.getSpent()) + " Wh");
+                        recoveredPower.setText("recoverd: " + df.format(Statistics.getRecoverd()) + " Wh");
+                        time.setText(Statistics.getCurrDiff()+" ms");
+                    });
+                }
+            };
+            t.start();
+
+
+        }
+
+
+    //}
 
     private Observable<RxBleConnection> prepareConnectionObservable() {
         return bleDevice
@@ -153,171 +189,28 @@ public class DeviceActivity extends Activity {
         return bleDevice.getConnectionState() == RxBleConnection.RxBleConnectionState.CONNECTED;
     }
 
+    public void connect(View view) {
+        doConnect();
+    }
 
     public void readName(View view) {
         if (!isConnected()) {
             doConnect();
         }
         //Start
-        handler1.post(runnableMeta);
-    }
-
-    private void setupNotificationAndSend() {
-
-        connection.setupNotification(UUID.fromString(CHAR_READ))
-                .doOnNext(notificationObservable -> {
-                    //Log.d(TAG, "notification has been setup");
-                })
-                .flatMap(notificationObservable -> notificationObservable) // <-- Notification has been set up, now observe value changes.
-                .timeout(200, TimeUnit.MILLISECONDS)
-                .onErrorResumeNext(Observable.empty())
-                .subscribe(
-                        bytes -> {
-                            //Log.d(TAG, "response: " + HexString.bytesToHex(bytes));
-                            updateUI(bytes);
-                        }
-
-                );
-    }
-
-    private void writeField(String command) {
-        //Log.d(TAG,"sending: "+command);
-        if(isConnected()) {
-            connection.writeCharacteristic(UUID.fromString(CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
-        }
+        handler1.post(process);
+        handler.post(runnableMeta);
 
     }
 
-    private void updateUI(byte[] bytes) {
-        String[] test = new String[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            byte[] temp = new byte[1];
-            temp[0] = bytes[i];
-            test[i] = HexString.bytesToHex(temp);
-        }
-
-        if (test[5].equals("33")) {
-            String temp = test[7] + test[6];
-            int amps = (short) Integer.parseInt(temp, 16);
-            double c = amps;
-            c = c / 100;
-
-            currentAmp = c;
-            double finalC = c;
-            Thread t = new Thread() {
-                public void run() {
-                    runOnUiThread(() -> ampMeter.setText(finalC + " A"));
-                }
-            };
-            t.start();
-
-            updateVoltage();
-
-        } else if (test[5].equals("32")) {
-            String temp = test[7] + test[6];
-            int lifet = (short) Integer.parseInt(temp, 16);
-            Thread t = new Thread() {
-                public void run() {
-                    runOnUiThread(() -> life.setText(lifet + " %"));
-                }
-            };
-            t.start();
-
-        } else if (test[5].equals("34")) {
-            String temp = test[7] + test[6];
-            int voltage = (short) Integer.parseInt(temp, 16);
-            double v = voltage;
-            v = v / 100;
-
-            currentVolt = v;
-            double finalV = v;
-            Thread t = new Thread() {
-                public void run() {
-                    runOnUiThread(() -> {
-                        Long tsLong = System.currentTimeMillis();
-                        double diff = tsLong - lastTime;
-                        diff /= 1000;
-                        if (diff > 2) {
-                            diff = 0.5;
-                        }
-                        time.setText(tsLong - lastTime + " ms");
-                        lastTime = tsLong;
-
-                        voltageMeter.setText(finalV + " V");
-                        int p = (int) (currentAmp * currentVolt);
-                        powerMeter.setText(p + "W");
-
-                        if (p < 0 && p < minPower) {
-                            minPower = p;
-                        }
-                        if (p > 0 && p > maxPower) {
-                            maxPower = p;
-                        }
-                        if (p < 0) {
-                            Double d = currentAmp * currentVolt;
-                            recoverd += (d / 60 / 60 * diff);
-                        } else if (p > 0) {
-                            Double d = currentAmp * currentVolt;
-                            spent += (d / 60 / 60 * diff);
-                        }
-                        DecimalFormat df = new DecimalFormat("#.####");
-                        df.setRoundingMode(RoundingMode.CEILING);
-
-                        minPowerView.setText("min Power: " + minPower + "W");
-                        maxPowerView.setText("max Power: " + maxPower + "W");
-                        spentPower.setText("spent: " + df.format(spent) + " Wh");
-                        recoveredPower.setText("recoverd: " + df.format(recoverd) + " Wh");
-
-                        //Log.d(TAG,"spent: "+spent+" recovered: "+recoverd);
-
-                    });
-                }
-            };
-            t.start();
-            updateBatteryLife();
-        }
+    public void reset(View view) {
+        Statistics.resetPowerStats();
     }
 
-    private void updateVoltage() {
-        String ctrlVersion = new NbMessage()
-                .setDirection(NbCommands.MASTER_TO_BATTERY)
-                .setRW(NbCommands.READ)
-                .setPosition(0x34)
-                .setPayload(0x02)
-                .build();
-        //setupNotificationAndSend(ctrlVersion);
-        writeField(ctrlVersion);
-    }
-
-    private void updateAmps() {
-        String ctrlVersion = new NbMessage()
-                .setDirection(NbCommands.MASTER_TO_BATTERY)
-                .setRW(NbCommands.READ)
-                .setPosition(0x33)
-                .setPayload(0x02)
-                .build();
-        //setupNotificationAndSend(ctrlVersion);
-        writeField(ctrlVersion);
-    }
-
-    private void updateBatteryLife() {
-        String ctrlVersion = new NbMessage()
-                .setDirection(NbCommands.MASTER_TO_BATTERY)
-                .setRW(NbCommands.READ)
-                .setPosition(0x32)
-                .setPayload(0x02)
-                .build();
-        //setupNotificationAndSend(ctrlVersion);
-        writeField(ctrlVersion);
-    }
-
-    private void onReadFailure(Throwable throwable) {
-        //noinspection ConstantConditions
-        //Log.d(TAG,"READ FAIL:"+throwable.getMessage());
-    }
-
-    public void connect(View view) {
-        doConnect();
+    public void stopHandler(View view) {
+        handler.removeCallbacksAndMessages(null);
+        handler1.removeCallbacksAndMessages(null);
+        requestQueue.clear();
     }
 
     private void doConnect() {
@@ -331,8 +224,8 @@ public class DeviceActivity extends Activity {
                     .doOnError(throwable -> {
                         System.out.println("ERROR,disconnect");
                         Toast.makeText(this, "Scooter disconnected", Toast.LENGTH_LONG).show();
-                        handler.removeCallbacksAndMessages(null);
-                        handler1.removeCallbacksAndMessages(null);
+                        //handler.removeCallbacksAndMessages(null);
+                        //handler1.removeCallbacksAndMessages(null);
                         dispose();
                         time.setText("disconnectd");
                     })
@@ -361,17 +254,93 @@ public class DeviceActivity extends Activity {
         this.time.setText("connected");
     }
 
+    private Runnable runnableMeta = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG,"Queue Size:"+requestQueue.size());
+            Log.d(TAG,"Sent:"+Statistics.getRequestsSent()+" Received:"+Statistics.getResponseReceived()+" Ratio:"+Statistics.getRequestsSent()/Statistics.getResponseReceived());
+            adjustTiming();
+            if(isConnected()) {
+                handler.removeCallbacksAndMessages(null);
+                handler.postDelayed(updateAmpsRunnable, Constants.getAmpereDelay());
+                handler.postDelayed(updateBatterylife, Constants.getBatterylifeDelay());
+                handler.postDelayed(updateVoltageRunnable, Constants.getVoltageDelay());
+                handler.postDelayed(this, 10000);
+            }
+        }
+    };
 
-    public void stopHandler(View view) {
-        handler.removeCallbacksAndMessages(null);
-        handler1.removeCallbacksAndMessages(null);
+    //Change request timings according to stats
+    private void adjustTiming() {
+       /* int requests= Statistics.getRequestsSent();
+        int response= Statistics.getResponseReceived();
+
+        if((requests/response)>2){
+            Constants.BASE_DELAY*=1.1;
+        }
+        else if(requests/response==1){
+            Constants.BASE_DELAY*=0.9;
+        }
+        Statistics.resetRequestStats();*/
+
+       if(requestQueue.size()>100){
+           Constants.BASE_DELAY*=1.1;
+       }
+       else if(requestQueue.size()<100){
+           Constants.BASE_DELAY*=0.9;
+       }
+        Statistics.resetRequestStats();
+
     }
 
-    public void reset(View view) {
-        maxPower = 0;
-        minPower = -0;
+    private Runnable updateAmpsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(isConnected()) {
+                requestQueue.add(new AmpereRequest());
+                handler.postDelayed(this, Constants.getAmpereDelay());
+            }
+        }
+    };
 
-        recoverd = 0.0; //watt hours
-        spent = 0.0; //watt hours
-    }
+    private Runnable updateVoltageRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(isConnected()) {
+                requestQueue.add(new VoltageRequest());
+                handler.postDelayed(this, Constants.getVoltageDelay());
+            }
+        }
+    };
+
+    private Runnable updateBatterylife = new Runnable() {
+        @Override
+        public void run() {
+            requestQueue.add(new BatteryLifeRequest());
+            handler.postDelayed(this, Constants.getBatterylifeDelay());
+        }
+    };
+
+    private Runnable process = new Runnable() {
+        @Override
+        public void run() {
+            setupNotificationAndSend();
+            try{
+                String command = requestQueue.remove().getRequestString();
+                if(isConnected()) {
+                    connection.writeCharacteristic(UUID.fromString(Constants.CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
+                    Statistics.countRequest();
+                }
+            }
+            catch (NoSuchElementException e){
+            }finally {
+                handler1.postDelayed(this, Constants.QUEUE_DELAY);
+            }
+
+
+        }
+    };
+
+
+
 }

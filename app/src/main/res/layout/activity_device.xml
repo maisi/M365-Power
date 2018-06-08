@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="maisi.M365.power.main.DeviceActivity2"
+    tools:context="maisi.M365.power.main.DeviceActivity"
     android:keepScreenOn="true">
 
     <TableLayout android:layout_height="wrap_content"
