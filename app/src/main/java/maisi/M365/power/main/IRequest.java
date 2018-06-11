@@ -5,10 +5,10 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.concurrent.Delayed;
 
-public interface IRequest extends Delayed {
-    
+public interface IRequest{
+
     public int getDelay();
-    
+
     public String getRequestString();
 
     //get RequestBit to identify

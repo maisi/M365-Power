@@ -1,5 +1,10 @@
 package maisi.M365.power.main;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Statistics {
 
     private static double maxPower = 0;
@@ -16,6 +21,14 @@ public class Statistics {
 
     private static int requestsSent=1;
     private static int responseReceived=1;
+
+    private static int batteryLife=0;
+
+    private static double distanceTravelled = 0.0; //km
+    private static double currentSpeed = 0.0; //km/h
+
+    private static List<Double> currentList = new ArrayList<>();
+    private static List<Double> speedList = new ArrayList<>();
 
     private static void calculateEnergy(){
         Long now=System.currentTimeMillis();
@@ -68,6 +81,7 @@ public class Statistics {
 
     public static void setCurrentAmpere(double currentAmpere) {
         Statistics.currentAmpere = currentAmpere;
+        currentList.add(currentAmpere);
         calculateEnergy();
         setMaxPower(getPower());
         setMinPower(getPower());
@@ -115,5 +129,45 @@ public class Statistics {
 
     public static int getResponseReceived() {
         return responseReceived;
+    }
+
+    public static void setBatteryLife(int batteryLife) {
+        Statistics.batteryLife = batteryLife;
+    }
+
+    public static void setDistanceTravelled(double distanceTravelled) {
+        Statistics.distanceTravelled = distanceTravelled;
+    }
+
+    public static void setSpeed(double speed) {
+        Statistics.speedList.add(speed);
+        Statistics.currentSpeed=speed;
+    }
+
+    public static LogDTO getLogStats (){
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.CEILING);
+        LogDTO logDTO=new LogDTO();
+        double currentSum = currentList.stream().mapToDouble(Double::doubleValue).sum();
+        double speedSum = speedList.stream().mapToDouble(Double::doubleValue).sum();
+        double averageCurrent = (currentSum/currentList.size());
+        double averageSpeed = speedSum/speedList.size();
+        if(Double.isNaN(averageCurrent)){
+            averageCurrent=0.0;
+        }
+        if(Double.isNaN(averageSpeed)){
+            averageSpeed=0.0;
+        }
+        logDTO.setAverageCurrent(Double.parseDouble(df.format(averageCurrent)));
+        logDTO.setAveragePower(Double.parseDouble(df.format(averageCurrent*currentVoltage)));
+        logDTO.setAverageSpeed(Double.parseDouble(df.format(averageSpeed)));
+        logDTO.setBatteryLife(batteryLife);
+        logDTO.setRecoveredPower(Double.parseDouble(df.format(recoverd)));
+        logDTO.setSpentPower(Double.parseDouble(df.format(spent)));
+        logDTO.setVoltage(currentVoltage);
+
+        currentList.clear();
+        speedList.clear();
+        return logDTO;
     }
 }

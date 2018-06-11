@@ -55,17 +55,6 @@ public class AmpereRequest implements IRequest {
     }
 
     @Override
-    public long getDelay(TimeUnit timeUnit) {
-        long diff = startTime - System.currentTimeMillis();
-        return timeUnit.convert(diff, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public int compareTo(Delayed delayed) {
-        return (int) (this.startTime - ((AmpereRequest) delayed).startTime);
-    }
-
-    @Override
     public RequestType getRequestType() {
         return requestType;
     }

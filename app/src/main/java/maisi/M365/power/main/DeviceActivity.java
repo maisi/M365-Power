@@ -3,6 +3,7 @@ package maisi.M365.power.main;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -31,8 +32,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import maisi.M365.power.main.Requests.AmpereRequest;
 import maisi.M365.power.main.Requests.BatteryLifeRequest;
+import maisi.M365.power.main.Requests.DistanceRequest;
+import maisi.M365.power.main.Requests.SpeedRequest;
 import maisi.M365.power.main.Requests.VoltageRequest;
 import maisi.M365.power.util.HexString;
+import maisi.M365.power.util.LogWriter;
 
 public class DeviceActivity extends Activity{
 
@@ -70,6 +74,10 @@ public class DeviceActivity extends Activity{
 
     private Handler handler = new Handler();
     private Handler handler1 = new Handler();
+
+    private LogWriter logWriter = new LogWriter(this);
+
+    private int lastDepth=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +119,8 @@ public class DeviceActivity extends Activity{
         requestTypes.add(new VoltageRequest());
         requestTypes.add(new AmpereRequest());
         requestTypes.add(new BatteryLifeRequest());
+        requestTypes.add(new SpeedRequest());
+        requestTypes.add(new DistanceRequest());
     }
     
     private void setupNotificationAndSend() {
@@ -257,14 +267,17 @@ public class DeviceActivity extends Activity{
     private Runnable runnableMeta = new Runnable() {
         @Override
         public void run() {
-            Log.d(TAG,"Queue Size:"+requestQueue.size());
+            Log.d(TAG,"Queue Size:"+requestQueue.size()+" Delay:"+Constants.BASE_DELAY);
             Log.d(TAG,"Sent:"+Statistics.getRequestsSent()+" Received:"+Statistics.getResponseReceived()+" Ratio:"+Statistics.getRequestsSent()/Statistics.getResponseReceived());
             adjustTiming();
             if(isConnected()) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(updateAmpsRunnable, Constants.getAmpereDelay());
-                handler.postDelayed(updateBatterylife, Constants.getBatterylifeDelay());
+                handler.postDelayed(updateBatterylifeRunnable, Constants.getBatterylifeDelay());
                 handler.postDelayed(updateVoltageRunnable, Constants.getVoltageDelay());
+                handler.postDelayed(updateSpeedRunnable, Constants.getSpeedDelay());
+                handler.postDelayed(updateDistanceRunnable, Constants.getDistanceDelay());
+                handler.postDelayed(getLogsRunnable,1000);
                 handler.postDelayed(this, 10000);
             }
         }
@@ -282,13 +295,13 @@ public class DeviceActivity extends Activity{
             Constants.BASE_DELAY*=0.9;
         }
         Statistics.resetRequestStats();*/
-
-       if(requestQueue.size()>100){
-           Constants.BASE_DELAY*=1.1;
-       }
-       else if(requestQueue.size()<100){
-           Constants.BASE_DELAY*=0.9;
-       }
+       int size = requestQueue.size();
+           if ((requestQueue.size() > 50) && (lastDepth < size)) {
+               Constants.BASE_DELAY *= 1.1;
+           } else if ((requestQueue.size() < 50)&& (lastDepth > size)) {
+               Constants.BASE_DELAY *= 0.9;
+           }
+        lastDepth=size;
         Statistics.resetRequestStats();
 
     }
@@ -313,11 +326,35 @@ public class DeviceActivity extends Activity{
         }
     };
 
-    private Runnable updateBatterylife = new Runnable() {
+    private Runnable updateBatterylifeRunnable = new Runnable() {
         @Override
         public void run() {
             requestQueue.add(new BatteryLifeRequest());
             handler.postDelayed(this, Constants.getBatterylifeDelay());
+        }
+    };
+
+    private Runnable updateSpeedRunnable = new Runnable() {
+        @Override
+        public void run() {
+            requestQueue.add(new SpeedRequest());
+            handler.postDelayed(this, Constants.getSpeedDelay());
+        }
+    };
+
+    private Runnable updateDistanceRunnable = new Runnable() {
+        @Override
+        public void run() {
+            requestQueue.add(new DistanceRequest());
+            handler.postDelayed(this, Constants.getDistanceDelay());
+        }
+    };
+
+    private Runnable getLogsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            logWriter.writeLog();
+            handler.postDelayed(this, Constants.getDistanceDelay());
         }
     };
 

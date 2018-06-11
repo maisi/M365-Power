@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "maisi.M365.power"
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion 24
     }
 

@@ -46,7 +46,7 @@ public class BatteryLifeRequest implements IRequest {
     public String handleResponse(String[] request) {
         String temp = request[7] + request[6];
         int batteryLife = (short) Integer.parseInt(temp, 16);
-
+        Statistics.setBatteryLife(batteryLife);
         return batteryLife + " %";
         //return textViews;
     }
@@ -56,14 +56,4 @@ public class BatteryLifeRequest implements IRequest {
         return requestType;
     }
 
-    @Override
-    public long getDelay(TimeUnit timeUnit) {
-        long diff = startTime - System.currentTimeMillis();
-        return timeUnit.convert(diff, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public int compareTo(Delayed delayed) {
-        return (int) (this.startTime - ((BatteryLifeRequest) delayed).startTime);
-    }
 }

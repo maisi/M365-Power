@@ -1,26 +1,24 @@
 package maisi.M365.power.main.Requests;
 
-import android.widget.TextView;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
-import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
-import maisi.M365.power.main.SpecialTextView;
 import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
-public class VoltageRequest implements IRequest {
-
+public class DistanceRequest implements IRequest {
     private static int delay = 500;
     private long startTime;
-    private final String requestBit = "34";
-    private final RequestType requestType = RequestType.VOLTAGE;
+    private final String requestBit = "B9";
+    private final RequestType requestType = RequestType.DISTANCE;
 
-    public VoltageRequest(){
+    public DistanceRequest(){
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -32,9 +30,9 @@ public class VoltageRequest implements IRequest {
     @Override
     public String getRequestString() {
         String ctrlVersion = new NbMessage()
-                .setDirection(NbCommands.MASTER_TO_BATTERY)
+                .setDirection(NbCommands.MASTER_TO_M365)
                 .setRW(NbCommands.READ)
-                .setPosition(0x34)
+                .setPosition(0xB9)
                 .setPayload(0x02)
                 .build();
         return ctrlVersion;
@@ -48,15 +46,21 @@ public class VoltageRequest implements IRequest {
     @Override
     public String handleResponse(String[] request) {
         String temp = request[7] + request[6];
-        int voltage = (short) Integer.parseInt(temp, 16);
-        double v = voltage;
-        v = v / 100;
+        int distance = (short) Integer.parseInt(temp, 16);
 
-        Statistics.setCurrentVoltage(v);
-        return v + " V";
+        double v = distance;
+        v = v /100;
+        //Log.d("Dist","distance:"+v);
+        Statistics.setDistanceTravelled(v);
+        return v + " km";
         //return textViews;
     }
 
+
+    public long getDelay(TimeUnit timeUnit) {
+        long diff = startTime - System.currentTimeMillis();
+        return timeUnit.convert(diff, TimeUnit.MILLISECONDS);
+    }
 
     @Override
     public RequestType getRequestType() {

@@ -6,10 +6,12 @@ public class Constants {
     public static final String CHAR_READ = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; //READ
 
 
-    public static int BASE_DELAY = 100;
+    public static int BASE_DELAY = 400;
     private static int VOLTAGE_DELAY = 250;
     private static int AMPERE_DELAY = 150;
     private static int BATTERYLIFE_DELAY = 1000;
+    private static int SPEED_DELAY = 150;
+    private static int DISTANCE_DELAY = 250;
     public static int QUEUE_DELAY=200;
 
     public static int getVoltageDelay() {
@@ -24,4 +26,11 @@ public class Constants {
         return BATTERYLIFE_DELAY+BASE_DELAY;
     }
 
+    public static int getSpeedDelay() {
+        return SPEED_DELAY+BASE_DELAY;
+    }
+
+    public static int getDistanceDelay() {
+        return DISTANCE_DELAY+BASE_DELAY;
+    }
 }
