@@ -57,6 +57,7 @@ public class DeviceActivity extends Activity{
     private SpecialTextView voltageMeter;
     private SpecialTextView ampMeter;
     private SpecialTextView life;
+    private SpecialTextView speedMeter;
     private TextView powerMeter;
     private TextView minPowerView;
     private TextView maxPowerView;
@@ -92,6 +93,10 @@ public class DeviceActivity extends Activity{
         ampMeter = this.findViewById(R.id.ampMeter);
         ampMeter.setType(RequestType.AMEPERE);
         textViews.add(ampMeter);
+
+        speedMeter = this.findViewById(R.id.speedMeter);
+        speedMeter.setType(RequestType.SPEED);
+        textViews.add(speedMeter);
 
         powerMeter = this.findViewById(R.id.powerMeter);
 
@@ -221,6 +226,7 @@ public class DeviceActivity extends Activity{
         handler.removeCallbacksAndMessages(null);
         handler1.removeCallbacksAndMessages(null);
         requestQueue.clear();
+        logWriter.writeLog(true);
     }
 
     private void doConnect() {
@@ -277,7 +283,7 @@ public class DeviceActivity extends Activity{
                 handler.postDelayed(updateVoltageRunnable, Constants.getVoltageDelay());
                 handler.postDelayed(updateSpeedRunnable, Constants.getSpeedDelay());
                 handler.postDelayed(updateDistanceRunnable, Constants.getDistanceDelay());
-                handler.postDelayed(getLogsRunnable,1000);
+                handler.postDelayed(getLogsRunnable,2000);
                 handler.postDelayed(this, 10000);
             }
         }
@@ -353,7 +359,7 @@ public class DeviceActivity extends Activity{
     private Runnable getLogsRunnable = new Runnable() {
         @Override
         public void run() {
-            logWriter.writeLog();
+            logWriter.writeLog(false);
             handler.postDelayed(this, Constants.getDistanceDelay());
         }
     };

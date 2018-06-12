@@ -5,11 +5,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,31 +19,44 @@ public class LogWriter {
     private Context context;
     private final char DEFAULT_SEPARATOR = ',';
     private List<LogDTO> dtoList;
+    private StringBuilder allBuilder;
 
-    public LogWriter(Context context){
-        this.context=context;
-        this.dtoList=new ArrayList<>();
+    public LogWriter(Context context) {
+        this.context = context;
+        this.dtoList = new ArrayList<>();
+        allBuilder = new StringBuilder();
     }
 
-    public void writeLog(){
+    public void writeLog(boolean all) {
         dtoList.add(Statistics.getLogStats());
-        if(dtoList.size()>=60){
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
 
-            Date resultdate = new Date();
-            sdf.format(resultdate);
-            StringBuilder sb = new StringBuilder();
-            sb.append(writeLine(dtoList.get(0).getHeader()));
-            for(LogDTO e:dtoList){
-                String temp = writeLine(e.toList());
-                sb.append(temp);
-                //sb.append(System.lineSeparator());
-            }
-            //Log.d("CSV","Attempt to write "+sb.toString());
-
-            writeFileOnInternalStorage("LOG "+sdf.format(resultdate).toString()+".csv",sb.toString());
-            dtoList.clear();
+        Date resultdate = new Date();
+        sdf.format(resultdate);
+        StringBuilder sb = new StringBuilder();
+        sb.append(writeLine(dtoList.get(0).getHeader()));
+        if (allBuilder.length() == 0) {
+            allBuilder.append(writeLine(dtoList.get(0).getHeader()));
         }
+        List<LogDTO> sublist;
+        if (!all && dtoList.size() >= 30) {
+            sublist = dtoList;
+            for (LogDTO e : sublist) {
+                if (e.getAverageCurrent() != 0.0) {
+                    String temp = writeLine(e.toList());
+                    sb.append(temp);
+                    allBuilder.append(temp);
+                }
+            }
+            Log.d("CSV", "Attempt to write " + sb.toString());
+
+            writeFileOnInternalStorage("LOG " + sdf.format(resultdate) + ".csv", sb.toString());
+            dtoList.clear();
+        } else {
+            writeFileOnInternalStorage("LOG " + sdf.format(resultdate) + "ALL.csv", allBuilder.toString());
+        }
+
+
     }
 
 

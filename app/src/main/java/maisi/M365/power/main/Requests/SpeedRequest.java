@@ -52,7 +52,8 @@ public class SpeedRequest implements IRequest {
         v=v/1000;
         //Log.d("Speed","speed:"+v);
         Statistics.setSpeed(v);
-        return v + " km/h";
+        v=Statistics.round(v,1);
+        return v+"";
         //return textViews;
     }
 

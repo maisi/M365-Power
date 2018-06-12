@@ -1,5 +1,7 @@
 package maisi.M365.power.main;
 
+import android.util.Log;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -145,10 +147,11 @@ public class Statistics {
     }
 
     public static LogDTO getLogStats (){
-        DecimalFormat df = new DecimalFormat("#.##");
-        df.setRoundingMode(RoundingMode.CEILING);
         LogDTO logDTO=new LogDTO();
-        double currentSum = currentList.stream().mapToDouble(Double::doubleValue).sum();
+        double currentSum =0.0;
+        for(double d:currentList){
+            currentSum+=d;
+        }
         double speedSum = speedList.stream().mapToDouble(Double::doubleValue).sum();
         double averageCurrent = (currentSum/currentList.size());
         double averageSpeed = speedSum/speedList.size();
@@ -158,16 +161,23 @@ public class Statistics {
         if(Double.isNaN(averageSpeed)){
             averageSpeed=0.0;
         }
-        logDTO.setAverageCurrent(Double.parseDouble(df.format(averageCurrent)));
-        logDTO.setAveragePower(Double.parseDouble(df.format(averageCurrent*currentVoltage)));
-        logDTO.setAverageSpeed(Double.parseDouble(df.format(averageSpeed)));
+
+        logDTO.setAverageCurrent(round(averageCurrent,2));
+        logDTO.setAveragePower(round(averageCurrent*currentVoltage,2));
+        logDTO.setAverageSpeed(averageSpeed);
         logDTO.setBatteryLife(batteryLife);
-        logDTO.setRecoveredPower(Double.parseDouble(df.format(recoverd)));
-        logDTO.setSpentPower(Double.parseDouble(df.format(spent)));
+        logDTO.setRecoveredPower(round(recoverd,4));
+        logDTO.setSpentPower(round(spent,4));
         logDTO.setVoltage(currentVoltage);
 
         currentList.clear();
         speedList.clear();
         return logDTO;
+    }
+
+    public static double round(double toRound,int decimals){
+        int temp = (int)(toRound*Math.pow(10,decimals));
+        double temp2= (double)temp;
+        return temp2/Math.pow(10,decimals);
     }
 }

@@ -31,4 +31,5 @@ dependencies {
     //    exclude module: "support-v13"
     //}
     annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.2.0"
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
 }
