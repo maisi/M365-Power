@@ -2,12 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     android:orientation="vertical"
-    tools:context="maisi.M365.power.main.DeviceActivity"
-    android:keepScreenOn="true">
+    tools:context="maisi.M365.power.main.DeviceActivity">
 
-    <TableLayout android:layout_height="wrap_content"
-        android:layout_width="match_parent">
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <TableRow android:layout_width="match_parent">
 
             <Button
@@ -16,31 +18,36 @@
                 android:layout_height="wrap_content"
                 android:onClick="connect"
                 android:text="re-/connect" />
+
             <TextView
                 android:id="@+id/time"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="disconnected"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
         </TableRow>
+
         <TableRow>
+
             <Button
                 android:id="@+id/reset"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="reset"
                 android:text="reset stats" />
-            <TextView
+
+            <maisi.M365.power.main.SpecialTextView
                 android:id="@+id/life"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="100 %"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
 
         </TableRow>
 
         <TableRow>
+
             <Button
                 android:id="@+id/read_name_button"
                 android:layout_width="match_parent"
@@ -58,33 +65,33 @@
 
         <TableRow>
 
-            <TextView
+            <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/voltageMeter"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="40.00 V"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
-            <TextView
+            <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/ampMeter"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="10.00 A"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
         </TableRow>
 
 
-
         <TableRow>
+
             <TextView
                 android:id="@+id/minPowerView"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:text="min Power: -100 W"
-                android:textSize="20sp"
+                android:paddingBottom="10dp"
                 android:paddingRight="30dp"
-                android:paddingBottom="10dp"/>
+                android:text="min Power: -100 W"
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/maxPowerView"
@@ -96,33 +103,53 @@
         </TableRow>
 
         <TableRow>
+
             <TextView
                 android:id="@+id/recoveredPower"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:text="recovered: 100 Wh"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/spentPower"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:text="spent: 100 Wh"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
 
         </TableRow>
-
-
-
-
     </TableLayout>
 
-    <TextView
-        android:id="@+id/powerMeter"
-        android:layout_width="wrap_content"
-        android:layout_height="438dp"
-        android:text="500W"
-        android:textSize="140sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/powerMeter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:text="500W"
+            android:textAlignment="center"
+            android:textSize="100sp" />
+
+        <maisi.M365.power.main.SpecialTextView
+            android:id="@+id/speedMeter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="30"
+            android:textAlignment="center"
+            android:textSize="100sp" />
+    </LinearLayout>
+
 
 </LinearLayout>
