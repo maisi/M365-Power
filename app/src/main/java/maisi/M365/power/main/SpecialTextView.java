@@ -6,8 +6,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-public class SpecialTextView extends TextView
-{
+public class SpecialTextView extends TextView {
     private RequestType type;
 
     public SpecialTextView(Context context) {
@@ -35,7 +34,7 @@ public class SpecialTextView extends TextView
     }
 
     @Override
-    protected void onDraw (Canvas canvas) {
+    protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
     }
 

@@ -13,6 +13,16 @@ public class LogDTO {
     private double spentPower;
     private double recoveredPower;
 
+    public double getRemainingCapacity() {
+        return remainingCapacity;
+    }
+
+    public void setRemainingCapacity(double remainingCapacity) {
+        this.remainingCapacity = remainingCapacity;
+    }
+
+    private double remainingCapacity;
+
     public double getAverageCurrent() {
         return averageCurrent;
     }
@@ -76,7 +86,7 @@ public class LogDTO {
     public void setRecoveredPower(double recoveredPower) {
         this.recoveredPower = recoveredPower;
     }
-    
+
     public List<String> toList(){
         List<String> result =new ArrayList<>();
         result.add(String.valueOf(this.averageCurrent));
@@ -87,20 +97,23 @@ public class LogDTO {
         result.add(String.valueOf(this.recoveredPower));
         result.add(String.valueOf(this.spentPower));
         result.add(String.valueOf(this.voltage));
-        
+        result.add(String.valueOf(this.remainingCapacity));
+
         return result;
     }
-    
+
     public List<String> getHeader(){
         List<String> result =new ArrayList<>();
         result.add("averageCurrent");
+        result.add("voltage");
         result.add("averagePower");
         result.add("averageSpeed");
         result.add("batteryLife");
+        result.add("remainingCapacity");
         result.add("distanceTravelled");
         result.add("recoveredPower");
         result.add("spentPower");
-        result.add("voltage");
+
 
         return result;
     }

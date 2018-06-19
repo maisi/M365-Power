@@ -1,23 +1,18 @@
 package maisi.M365.power.main.Requests;
 
-import java.util.List;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
-
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
-import maisi.M365.power.main.SpecialTextView;
 import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
 public class BatteryLifeRequest implements IRequest {
     private static int delay = 1000;
-    private long startTime;
     private final String requestBit = "32";
     private final RequestType requestType = RequestType.BATTERYLIFE;
+    private long startTime;
 
-    public BatteryLifeRequest(){
+    public BatteryLifeRequest() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -28,13 +23,12 @@ public class BatteryLifeRequest implements IRequest {
 
     @Override
     public String getRequestString() {
-        String ctrlVersion = new NbMessage()
+        return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_BATTERY)
                 .setRW(NbCommands.READ)
                 .setPosition(0x32)
                 .setPayload(0x02)
                 .build();
-        return ctrlVersion;
     }
 
     @Override

@@ -1,25 +1,18 @@
 package maisi.M365.power.main.Requests;
 
-import android.util.Log;
-
-import java.util.List;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
-
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
-import maisi.M365.power.main.SpecialTextView;
 import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
 public class AmpereRequest implements IRequest {
     private static int delay = 100;
-    private long startTime;
     private final String requestBit = "33";
     private final RequestType requestType = RequestType.AMEPERE;
+    private long startTime;
 
-    public AmpereRequest(){
+    public AmpereRequest() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -30,13 +23,12 @@ public class AmpereRequest implements IRequest {
 
     @Override
     public String getRequestString() {
-        String ctrlVersion = new NbMessage()
+        return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_BATTERY)
                 .setRW(NbCommands.READ)
                 .setPosition(0x33)
                 .setPayload(0x02)
                 .build();
-        return ctrlVersion;
     }
 
     @Override
@@ -51,7 +43,7 @@ public class AmpereRequest implements IRequest {
         double c = amps;
         c = c / 100;
         Statistics.setCurrentAmpere(c);
-        return ""+c+" A";
+        return "" + c + " A";
     }
 
     @Override

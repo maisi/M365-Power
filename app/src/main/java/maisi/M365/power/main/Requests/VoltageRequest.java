@@ -1,14 +1,7 @@
 package maisi.M365.power.main.Requests;
 
-import android.widget.TextView;
-
-import java.util.List;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
-
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
-import maisi.M365.power.main.SpecialTextView;
 import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
@@ -16,11 +9,11 @@ import maisi.M365.power.util.NbMessage;
 public class VoltageRequest implements IRequest {
 
     private static int delay = 500;
-    private long startTime;
     private final String requestBit = "34";
     private final RequestType requestType = RequestType.VOLTAGE;
+    private long startTime;
 
-    public VoltageRequest(){
+    public VoltageRequest() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -31,13 +24,12 @@ public class VoltageRequest implements IRequest {
 
     @Override
     public String getRequestString() {
-        String ctrlVersion = new NbMessage()
+        return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_BATTERY)
                 .setRW(NbCommands.READ)
                 .setPosition(0x34)
                 .setPayload(0x02)
                 .build();
-        return ctrlVersion;
     }
 
     @Override

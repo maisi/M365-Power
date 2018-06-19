@@ -1,26 +1,19 @@
 package maisi.M365.power.main.Requests;
 
-import java.util.concurrent.TimeUnit;
-
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
 import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
-public class SpeedRequest implements IRequest {
-    private static int delay = 500;
-    private final String requestBit = "B5";
-    private final RequestType requestType = RequestType.SPEED;
-    private long startTime;
+public class SuperMasterRequest implements IRequest {
 
-    public SpeedRequest() {
-        this.startTime = System.currentTimeMillis() + delay;
-    }
+    private final String requestBit = "B0";
+    private final RequestType requestType = RequestType.SUPERMASTER;
 
     @Override
     public int getDelay() {
-        return delay;
+        return 0;
     }
 
     @Override
@@ -28,8 +21,8 @@ public class SpeedRequest implements IRequest {
         return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_M365)
                 .setRW(NbCommands.READ)
-                .setPosition(0xB5)
-                .setPayload(0x02)
+                .setPosition(0xb0)
+                .setPayload(0x20)
                 .build();
     }
 
@@ -38,24 +31,27 @@ public class SpeedRequest implements IRequest {
         return requestBit;
     }
 
+
     @Override
     public String handleResponse(String[] request) {
-        String temp = request[7] + request[6];
-        int speed = (short) Integer.parseInt(temp, 16);
 
+        String temp = request[17] + request[16];
+        int speed = (short) Integer.parseInt(temp, 16);
         double v = speed;
         v = v / 1000;
         //Log.d("Speed","speed:"+v);
         Statistics.setSpeed(v);
         v = Statistics.round(v, 1);
+
+        temp = request[25] + request[24];
+        int distance = (short) Integer.parseInt(temp, 16);
+
+        double dist = distance;
+        dist = dist / 100;
+        Statistics.setDistanceTravelled(dist);
+
         return v + "";
-        //return textViews;
-    }
 
-
-    public long getDelay(TimeUnit timeUnit) {
-        long diff = startTime - System.currentTimeMillis();
-        return timeUnit.convert(diff, TimeUnit.MILLISECONDS);
     }
 
     @Override

@@ -2,7 +2,6 @@ package maisi.M365.power.util;
 
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,8 +15,8 @@ import maisi.M365.power.main.Statistics;
 
 public class LogWriter {
 
-    private Context context;
     private final char DEFAULT_SEPARATOR = ',';
+    private Context context;
     private List<LogDTO> dtoList;
     private StringBuilder allBuilder;
 
@@ -48,7 +47,7 @@ public class LogWriter {
                     allBuilder.append(temp);
                 }
             }
-            Log.d("CSV", "Attempt to write " + sb.toString());
+            /og.d("CSV", "Attempt to write " + sb.toString());
 
             writeFileOnInternalStorage("LOG " + sdf.format(resultdate) + ".csv", sb.toString());
             dtoList.clear();
