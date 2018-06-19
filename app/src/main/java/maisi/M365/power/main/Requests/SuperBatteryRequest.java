@@ -68,6 +68,6 @@ public class SuperBatteryRequest implements IRequest {
 
     @Override
     public RequestType getRequestType() {
-        return null;
+        return requestType;
     }
 }

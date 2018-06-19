@@ -40,7 +40,7 @@ public class LogWriter {
             allBuilder.append(writeLine(dtoList.get(0).getHeader()));
         }
         List<LogDTO> sublist;
-        if (!all && dtoList.size() >= 10) {
+        if (!all && dtoList.size() >= 30) {
             sublist = dtoList;
             for (LogDTO e : sublist) {
                 if (e.getAverageCurrent() != 0.0) {

@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-public class SpecialTextView extends TextView {
+public class SpecialTextView extends android.support.v7.widget.AppCompatTextView {
     private RequestType type;
 
     public SpecialTextView(Context context) {

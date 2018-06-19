@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -79,8 +80,10 @@ public class DeviceActivity extends AppCompatActivity
     private Map<RequestType, IRequest> requestTypes = new HashMap<>();
     private List<SpecialTextView> textViews = new ArrayList<>();
     private String[] lastResponse;
-    private Handler handler = new Handler();
-    private Handler handler1 = new Handler();
+    private HandlerThread handlerThread;
+    private HandlerThread handlerThread1;
+    private Handler handler;
+    private Handler handler1;
     private LogWriter logWriter = new LogWriter(this);
     private int lastDepth = 0;
     private boolean storagePermission = false;
@@ -177,7 +180,7 @@ public class DeviceActivity extends AppCompatActivity
                 String command = requestQueue.remove().getRequestString();
                 if (isConnected()) {
                     connection.writeCharacteristic(UUID.fromString(Constants.CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
-                    //Log.d("Diff", "Req sent: " + command);
+                    //Log.d(TAG, "Req sent: " + command);
                     Statistics.countRequest();
                 }
             } catch (NoSuchElementException e) {
@@ -188,6 +191,13 @@ public class DeviceActivity extends AppCompatActivity
 
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handlerThread.quit();
+        handlerThread1.quit();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,6 +253,13 @@ public class DeviceActivity extends AppCompatActivity
         lastTimeStamp = System.nanoTime();
         mRootView= findViewById(R.id.root);
 
+        handlerThread=new HandlerThread("RequestThread");
+        handlerThread.start();
+        handler=new Handler(handlerThread.getLooper());
+        handlerThread1=new HandlerThread("LoggingThread");
+        handlerThread1.start();
+        handler1=new Handler(handlerThread1.getLooper());
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             requestStoragePermission();
@@ -271,7 +288,7 @@ public class DeviceActivity extends AppCompatActivity
         if (bytes.length == 0) { //super request returns a third empty message
             return;
         }
-        //Log.d("Diff", "Resp rec. length:" + bytes.length);
+        //Log.d(TAG, "Resp rec. length:" + bytes.length);
         //handler1.post(process);
 
         String[] hexString = new String[bytes.length];
@@ -281,7 +298,7 @@ public class DeviceActivity extends AppCompatActivity
             hexString[i] = HexString.bytesToHex(temp);
         }
         String requestBit = hexString[5];
-        //Log.d("tst", "requestBit: "+requestBit+" " + Arrays.toString(hexString));
+        //Log.d(TAG, "requestBit: "+requestBit+" " + Arrays.toString(hexString));
 
         if (bytes.length > 10) { //Super handling
             if (requestBit.equals(requestTypes.get(RequestType.SUPERMASTER).getRequestBit())) {
@@ -296,7 +313,7 @@ public class DeviceActivity extends AppCompatActivity
                 currDiff = diff;
 
                 lastTimeStamp = now;
-                Log.d("DIFF", "time in ms:" + diff);
+                Log.d(TAG, "time in ms:" + diff);
                 requestTypes.get(RequestType.SUPERBATTERY).handleResponse(hexString);
             } else {
                 String[] combinedRespose = new String[lastResponse.length + hexString.length];
@@ -364,14 +381,17 @@ public class DeviceActivity extends AppCompatActivity
     public void startHandler(View view) {
         if (!isConnected()) {
             doConnect();
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    handler1.post(process);
+                    handler.post(runnableMeta);
+                }
+            }, 2000);
         }
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                handler1.post(process);
-                handler.post(runnableMeta);
-            }
-        }, 2000);
+       else{ handler1.post(process);
+        handler.post(runnableMeta);}
+
 
 
     }
