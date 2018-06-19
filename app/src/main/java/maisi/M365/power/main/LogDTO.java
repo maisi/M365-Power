@@ -9,19 +9,21 @@ public class LogDTO {
     private double averagePower;
     private double averageSpeed;
     private double distanceTravelled;
-    private double batteryLife;
+    private int batteryLife;
     private double spentPower;
     private double recoveredPower;
+    private int remainingCapacity;
+    private int battTemp;
 
     public double getRemainingCapacity() {
         return remainingCapacity;
     }
 
-    public void setRemainingCapacity(double remainingCapacity) {
+    public void setRemainingCapacity(int remainingCapacity) {
         this.remainingCapacity = remainingCapacity;
     }
 
-    private double remainingCapacity;
+
 
     public double getAverageCurrent() {
         return averageCurrent;
@@ -67,7 +69,7 @@ public class LogDTO {
         return batteryLife;
     }
 
-    public void setBatteryLife(double batteryLife) {
+    public void setBatteryLife(int batteryLife) {
         this.batteryLife = batteryLife;
     }
 
@@ -90,14 +92,17 @@ public class LogDTO {
     public List<String> toList(){
         List<String> result =new ArrayList<>();
         result.add(String.valueOf(this.averageCurrent));
+        result.add(String.valueOf(this.voltage));
         result.add(String.valueOf(this.averagePower));
         result.add(String.valueOf(this.averageSpeed));
-        result.add(String.valueOf(this.batteryLife));
         result.add(String.valueOf(this.distanceTravelled));
+        result.add(String.valueOf(this.batteryLife));
+        result.add(String.valueOf(this.remainingCapacity));
+        result.add(String.valueOf(this.battTemp));
         result.add(String.valueOf(this.recoveredPower));
         result.add(String.valueOf(this.spentPower));
-        result.add(String.valueOf(this.voltage));
-        result.add(String.valueOf(this.remainingCapacity));
+
+
 
         return result;
     }
@@ -108,13 +113,22 @@ public class LogDTO {
         result.add("voltage");
         result.add("averagePower");
         result.add("averageSpeed");
+        result.add("distanceTravelled");
         result.add("batteryLife");
         result.add("remainingCapacity");
-        result.add("distanceTravelled");
+        result.add("batteryTemperature");
         result.add("recoveredPower");
         result.add("spentPower");
 
 
         return result;
+    }
+
+    public int getBattTemp() {
+        return battTemp;
+    }
+
+    public void setBattTemp(int battTemp) {
+        this.battTemp = battTemp;
     }
 }

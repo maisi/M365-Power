@@ -2,6 +2,7 @@ package maisi.M365.power.util;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,6 +20,7 @@ public class LogWriter {
     private Context context;
     private List<LogDTO> dtoList;
     private StringBuilder allBuilder;
+    private String path;
 
     public LogWriter(Context context) {
         this.context = context;
@@ -38,7 +40,7 @@ public class LogWriter {
             allBuilder.append(writeLine(dtoList.get(0).getHeader()));
         }
         List<LogDTO> sublist;
-        if (!all && dtoList.size() >= 30) {
+        if (!all && dtoList.size() >= 10) {
             sublist = dtoList;
             for (LogDTO e : sublist) {
                 if (e.getAverageCurrent() != 0.0) {
@@ -47,11 +49,10 @@ public class LogWriter {
                     allBuilder.append(temp);
                 }
             }
-            /og.d("CSV", "Attempt to write " + sb.toString());
-
             writeFileOnInternalStorage("LOG " + sdf.format(resultdate) + ".csv", sb.toString());
             dtoList.clear();
-        } else {
+        } else if(all){
+            Log.d("Log", "write ALL");
             writeFileOnInternalStorage("LOG " + sdf.format(resultdate) + "ALL.csv", allBuilder.toString());
         }
 
@@ -62,6 +63,7 @@ public class LogWriter {
     private void writeFileOnInternalStorage(String sFileName, String sBody) {
         //Log.d("CSV","Write to file");
         File file = new File(Environment.getExternalStorageDirectory(), "M365Log");
+        this.path = file.getAbsolutePath();
         if (!file.exists()) {
             file.mkdir();
         }
@@ -126,4 +128,7 @@ public class LogWriter {
     }
 
 
+    public String getPath() {
+        return path;
+    }
 }

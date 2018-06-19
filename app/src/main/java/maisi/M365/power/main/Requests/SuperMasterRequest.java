@@ -1,5 +1,7 @@
 package maisi.M365.power.main.Requests;
 
+import android.util.Log;
+
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
 import maisi.M365.power.main.Statistics;
@@ -49,6 +51,7 @@ public class SuperMasterRequest implements IRequest {
         double dist = distance;
         dist = dist / 100;
         Statistics.setDistanceTravelled(dist);
+        Log.d("SuperDistance","Distance:"+dist);
 
         return v + "";
 

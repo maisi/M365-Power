@@ -8,7 +8,9 @@
     <string name="action_scan">SCAN</string>
     <string name="action_stop">STOP</string>
     <!-- Device -->
-    <string name="read_manufacturer_name">Read Manufacturer Name</string>
-    <string name="read_serial_number">Read Serial Number</string>
-    <string name="write_alert_level">Write Alert Level</string>
+    <string name="permission_request">Storage permission needed to write log files</string>
+    <string name="ok">ok</string>
+    <string name="permission_unavailable">Requesting Permission</string>
+    <string name="permission_granted">Permission granted</string>
+    <string name="permission_denied">Permission denied</string>
 </resources>

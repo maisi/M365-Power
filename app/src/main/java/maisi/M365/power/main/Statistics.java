@@ -100,10 +100,6 @@ public class Statistics {
         }
     }
 
-    public static double getRecoverd() {
-        return recovered;
-    }
-
     public static double getSpent() {
         return spent;
     }
@@ -153,10 +149,6 @@ public class Statistics {
         return recovered;
     }
 
-    public static void setRecovered(double recovered) {
-        Statistics.recovered = recovered;
-    }
-
     public static LogDTO getLogStats() {
         calculateEnergy();
         LogDTO logDTO = new LogDTO();
@@ -168,20 +160,22 @@ public class Statistics {
         double averageCurrent = (currentSum / currentList.size());
         double averageSpeed = speedSum / speedList.size();
         if (Double.isNaN(averageCurrent)) {
-            averageCurrent = 0.0;
+            averageCurrent = getCurrentAmpere();
         }
         if (Double.isNaN(averageSpeed)) {
-            averageSpeed = 0.0;
+            averageSpeed = getCurrentSpeed();
         }
 
         logDTO.setAverageCurrent(round(averageCurrent, 2));
         logDTO.setAveragePower(round(averageCurrent * currentVoltage, 2));
         logDTO.setAverageSpeed(averageSpeed);
-        logDTO.setBatteryLife(batteryLife);
-        logDTO.setRecoveredPower(round(recovered, 4));
-        logDTO.setSpentPower(round(spent, 4));
-        logDTO.setVoltage(currentVoltage);
-        logDTO.setRemainingCapacity(remainingCapacity);
+        logDTO.setBatteryLife(getBatteryLife());
+        logDTO.setRecoveredPower(round(getRecovered(), 4));
+        logDTO.setSpentPower(round(getSpent(), 4));
+        logDTO.setVoltage(getCurrentVoltage());
+        logDTO.setRemainingCapacity(getRemainingCapacity());
+        logDTO.setDistanceTravelled(getDistanceTravelled());
+        logDTO.setBattTemp(getBatteryTemperature());
 
         currentList.clear();
         speedList.clear();
