@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true"
     android:orientation="vertical"
+    android:id="@+id/root"
     tools:context="maisi.M365.power.main.DeviceActivity">
 
     <TableLayout
@@ -49,14 +50,14 @@
         <TableRow>
 
             <Button
-                android:id="@+id/read_name_button"
+                android:id="@+id/start_handler_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="readName"
+                android:onClick="startHandler"
                 android:text="Start Handler" />
 
             <Button
-                android:id="@+id/stop_handler"
+                android:id="@+id/stop_handler_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="stopHandler"

@@ -1,15 +1,23 @@
 package maisi.M365.power.main;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.v13.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.design.widget.Snackbar;
 
 import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.RxBleConnection;
@@ -18,7 +26,6 @@ import com.polidea.rxandroidble2.RxBleDevice;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +48,8 @@ import maisi.M365.power.main.Requests.VoltageRequest;
 import maisi.M365.power.util.HexString;
 import maisi.M365.power.util.LogWriter;
 
-public class DeviceActivity extends Activity {
+public class DeviceActivity extends AppCompatActivity
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -75,6 +83,10 @@ public class DeviceActivity extends Activity {
     private Handler handler1 = new Handler();
     private LogWriter logWriter = new LogWriter(this);
     private int lastDepth = 0;
+    private boolean storagePermission = false;
+    private static final int PERMISSION_EXTERNAL_STORAGE = 0;
+    private LinearLayout mRootView;
+
     private Runnable updateAmpsRunnable = new Runnable() {
         @Override
         public void run() {
@@ -150,7 +162,9 @@ public class DeviceActivity extends Activity {
                 handler.postDelayed(updateSuperBatteryRunnable, Constants.getAmpereDelay());
                 //handler.postDelayed(updateSpeedRunnable, Constants.getSpeedDelay());
                 //handler.postDelayed(updateDistanceRunnable, Constants.getDistanceDelay());
-                handler.postDelayed(getLogsRunnable, 2000);
+                if(storagePermission){
+                    handler.postDelayed(getLogsRunnable, 2000);
+                }
                 handler.postDelayed(this, 10000);
             }
         }
@@ -177,10 +191,11 @@ public class DeviceActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        setTheme(R.style.MyAppTheme);
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_device);
+
 
         voltageMeter = this.findViewById(R.id.voltageMeter);
         voltageMeter.setType(RequestType.VOLTAGE);
@@ -226,6 +241,15 @@ public class DeviceActivity extends Activity {
         requestTypes.put(RequestType.SUPERBATTERY, new SuperBatteryRequest());
 
         lastTimeStamp = System.nanoTime();
+        mRootView= findViewById(R.id.root);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestStoragePermission();
+        }
+        else{
+            storagePermission=true;
+        }
     }
 
     @SuppressLint("CheckResult")
@@ -313,7 +337,7 @@ public class DeviceActivity extends Activity {
                     //minPowerView.setText("QueueD: " + Constants.QUEUE_DELAY + "ms");
                     //maxPowerView.setText("Req/Res: " + Statistics.getRequestsSent() + " " + Statistics.getResponseReceived());
                     spentPower.setText("spent: " + df.format(Statistics.getSpent()) + " Wh");
-                    recoveredPower.setText("recoverd: " + df.format(Statistics.getRecoverd()) + " Wh");
+                    recoveredPower.setText("recoverd: " + df.format(Statistics.getRecovered()) + " Wh");
                     time.setText(Statistics.getCurrDiff() + " ms");
                     life.setText(Statistics.getBatteryLife() + " %");
                     ampMeter.setText(Statistics.getCurrentAmpere() + " A");
@@ -337,13 +361,18 @@ public class DeviceActivity extends Activity {
         doConnect();
     }
 
-    public void readName(View view) {
+    public void startHandler(View view) {
         if (!isConnected()) {
             doConnect();
         }
-        //Start
-        handler1.post(process);
-        handler.post(runnableMeta);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                handler1.post(process);
+                handler.post(runnableMeta);
+            }
+        }, 2000);
+
 
     }
 
@@ -352,10 +381,12 @@ public class DeviceActivity extends Activity {
     }
 
     public void stopHandler(View view) {
+        Log.d(TAG,"Stop Handler called");
         handler.removeCallbacksAndMessages(null);
         handler1.removeCallbacksAndMessages(null);
         requestQueue.clear();
         logWriter.writeLog(true);
+        Toast.makeText(this, "Logs in:"+logWriter.getPath(), Toast.LENGTH_LONG).show();
     }
 
     private void doConnect() {
@@ -368,11 +399,11 @@ public class DeviceActivity extends Activity {
                     .doFinally(this::dispose)
                     .doOnError(throwable -> {
                         System.out.println("ERROR,disconnect");
-                        Toast.makeText(this, "Scooter disconnected", Toast.LENGTH_LONG).show();
+                        Toast.makeText(DeviceActivity.this, "Could not connect to scooter,please retry", Toast.LENGTH_LONG).show();
                         //handler.removeCallbacksAndMessages(null);
                         //handler1.removeCallbacksAndMessages(null);
                         dispose();
-                        time.setText("disconnectd");
+                        time.setText("disconnected");
                     })
                     .subscribe(this::onConnectionReceived, this::onConnectionFailure);
         }
@@ -383,6 +414,8 @@ public class DeviceActivity extends Activity {
         if (connectionDisposable != null) {
             connectionDisposable.dispose();
         }
+        time.setText("disconnected");
+        stopHandler(mRootView);
     }
 
     private void dispose() {
@@ -390,8 +423,8 @@ public class DeviceActivity extends Activity {
     }
 
     private void onConnectionFailure(Throwable throwable) {
-        //noinspection ConstantConditions
-        //Log.d(TAG,"connection fail: "+throwable.getMessage());
+        Log.d(TAG,"connection fail: "+throwable.getMessage());
+        Toast.makeText(DeviceActivity.this, "Could not connect to scooter,please retry", Toast.LENGTH_LONG).show();
     }
 
     private void onConnectionReceived(RxBleConnection connection) {
@@ -421,6 +454,51 @@ public class DeviceActivity extends Activity {
         Statistics.resetRequestStats();
 
     }
+
+    private void requestStoragePermission() {
+        // Permission has not been granted and must be requested.
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            // Provide an additional rationale to the user if the permission was not granted
+            // and the user would benefit from additional context for the use of the permission.
+            // Display a SnackBar with cda button to request the missing permission.
+            Snackbar.make(mRootView, R.string.permission_request,
+                    Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // Request the permission
+                    ActivityCompat.requestPermissions(DeviceActivity.this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSION_EXTERNAL_STORAGE);
+                }
+            }).show();
+
+        } else {
+            Snackbar.make(mRootView, R.string.permission_unavailable, Snackbar.LENGTH_SHORT).show();
+            // Request the permission. The result will be received in onRequestPermissionResult().
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_EXTERNAL_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_EXTERNAL_STORAGE) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Snackbar.make(mRootView, R.string.permission_granted,
+                        Snackbar.LENGTH_SHORT)
+                        .show();
+                storagePermission=true;
+            } else {
+                // Permission request was denied.
+                Snackbar.make(mRootView, R.string.permission_denied,
+                        Snackbar.LENGTH_SHORT)
+                        .show();
+            }
+        }
+    }
+
 
 
 }
