@@ -1,156 +1,245 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true"
-    android:orientation="vertical"
-    android:id="@+id/root"
     tools:context="maisi.M365.power.main.DeviceActivity">
 
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <TableRow android:layout_width="match_parent">
+    <Button
+        android:id="@+id/connect"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:onClick="connect"
+        android:text="re-/connect"
+        app:layout_constraintBottom_toTopOf="@+id/reset"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintLeft_toLeftOf="@+id/middle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/topLine" />
 
-            <Button
-                android:id="@+id/connect"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="connect"
-                android:text="re-/connect" />
-
-            <TextView
-                android:id="@+id/time"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="disconnected"
-                android:textSize="20sp" />
-        </TableRow>
-
-        <TableRow>
-
-            <Button
-                android:id="@+id/reset"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="reset"
-                android:text="reset stats" />
-
-            <maisi.M365.power.main.SpecialTextView
-                android:id="@+id/life"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="100 %"
-                android:textSize="20sp" />
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="disconnected"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/life"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.44"
+        app:layout_constraintStart_toStartOf="@+id/middle"
+        app:layout_constraintTop_toTopOf="@id/topLine" />
 
 
-        </TableRow>
+    <Button
+        android:id="@+id/reset"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="reset"
+        android:text="reset stats"
+        app:layout_constraintBottom_toTopOf="@+id/start_handler_button"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/connect" />
 
-        <TableRow>
-
-            <Button
-                android:id="@+id/start_handler_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="startHandler"
-                android:text="Start Handler" />
-
-            <Button
-                android:id="@+id/stop_handler_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="stopHandler"
-                android:text="Stop Handler" />
-        </TableRow>
-
-        <TableRow>
-
-            <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/voltageMeter"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="40.00 V"
-                android:textSize="20sp" />
-
-            <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/ampMeter"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="10.00 A"
-                android:textSize="20sp" />
-
-        </TableRow>
+    <maisi.M365.power.main.SpecialTextView
+        android:id="@+id/life"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="100 %"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/stop_handler_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/middle"
+        app:layout_constraintTop_toBottomOf="@+id/time" />
 
 
-        <TableRow>
+    <Button
+        android:id="@+id/start_handler_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="startHandler"
+        android:text="Start Handler"
+        app:layout_constraintBottom_toTopOf="@+id/belowHandlerLine"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/belowResetLine" />
 
-            <TextView
-                android:id="@+id/minPowerView"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:paddingBottom="10dp"
-                android:paddingRight="30dp"
-                android:text="min Power: -100 W"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/maxPowerView"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="max Power: 500 W"
-                android:textSize="20sp" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/recoveredPower"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="recovered: 100 Wh"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/spentPower"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="spent: 100 Wh"
-                android:textSize="20sp" />
+    <Button
+        android:id="@+id/stop_handler_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="stopHandler"
+        android:text="Stop Handler"
+        app:layout_constraintBottom_toTopOf="@+id/belowHandlerLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/middle"
+        app:layout_constraintTop_toBottomOf="@+id/belowResetLine" />
 
 
-        </TableRow>
-    </TableLayout>
+    <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/voltageMeter"
+        android:layout_width="82dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="4dp"
+        android:text="40.00 V"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/minPowerView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/belowHandlerLine" />
+
+    <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/ampMeter"
+        android:layout_width="67dp"
+        android:layout_height="51dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:text="10.00 A"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintStart_toEndOf="@+id/voltageMeter"
+        app:layout_constraintTop_toBottomOf="@+id/belowHandlerLine" />
 
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="5dp"
-        android:orientation="vertical">
+    <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/efficiencyMeter"
+        android:layout_width="82dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="4dp"
+        android:text="500 mAh/km"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/minPowerView"
+        app:layout_constraintStart_toStartOf="@id/middle"
+        app:layout_constraintTop_toBottomOf="@+id/belowHandlerLine" />
 
-        <TextView
-            android:id="@+id/powerMeter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:text="500W"
-            android:textAlignment="center"
-            android:textSize="100sp" />
-
-        <maisi.M365.power.main.SpecialTextView
-            android:id="@+id/speedMeter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_marginTop="10dp"
-            android:text="30"
-            android:textAlignment="center"
-            android:textSize="100sp" />
-    </LinearLayout>
+    <maisi.M365.power.main.SpecialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/rangeMeter"
+        android:layout_width="67dp"
+        android:layout_height="51dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:text="25 km"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/efficiencyMeter"
+        app:layout_constraintTop_toBottomOf="@+id/belowHandlerLine" />
 
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/minPowerView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="min Power: -100W"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/maxPowerView"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/voltageMeter" />
+
+    <TextView
+        android:id="@+id/maxPowerView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="max Power: 500 W"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/abovePower"
+        app:layout_constraintEnd_toStartOf="@+id/middle"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/minPowerView" />
+
+    <TextView
+        android:id="@+id/recoveredPower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="recovered: 100 Wh"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/abovePower"
+        app:layout_constraintStart_toStartOf="@+id/middle"
+        app:layout_constraintTop_toBottomOf="@+id/spentPower" />
+
+    <TextView
+        android:id="@+id/spentPower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="spent: 100 Wh"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/recoveredPower"
+        app:layout_constraintStart_toStartOf="@+id/middle"
+        app:layout_constraintTop_toBottomOf="@+id/belowVoltageLine" />
+
+
+    <TextView
+        android:id="@+id/powerMeter"
+        android:layout_width="269dp"
+        android:layout_height="wrap_content"
+        android:text="500W"
+        android:textAlignment="center"
+        android:textSize="100sp"
+        app:layout_constraintBottom_toTopOf="@+id/speedMeter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.505"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/abovePower" />
+
+    <maisi.M365.power.main.SpecialTextView
+        android:id="@+id/speedMeter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="30"
+        android:textAlignment="center"
+        android:textSize="100sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/powerMeter" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/middle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="180dp" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/abovePower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/topLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="3dp" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/belowHandlerLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="146dp" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/belowResetLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="99dp" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/belowVoltageLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="196dp" />
+
+
+</android.support.constraint.ConstraintLayout>

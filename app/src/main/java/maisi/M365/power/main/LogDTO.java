@@ -14,6 +14,9 @@ public class LogDTO {
     private double recoveredPower;
     private int remainingCapacity;
     private int battTemp;
+    private double mampHoursPerKilometer;
+    private double remainingRange;
+    private long timestamp;
 
     public double getRemainingCapacity() {
         return remainingCapacity;
@@ -101,9 +104,9 @@ public class LogDTO {
         result.add(String.valueOf(this.battTemp));
         result.add(String.valueOf(this.recoveredPower));
         result.add(String.valueOf(this.spentPower));
-
-
-
+        result.add(String.valueOf(this.mampHoursPerKilometer));
+        result.add(String.valueOf(this.remainingRange));
+        result.add(String.valueOf(this.timestamp));
         return result;
     }
 
@@ -119,8 +122,9 @@ public class LogDTO {
         result.add("batteryTemperature");
         result.add("recoveredPower");
         result.add("spentPower");
-
-
+        result.add("amphperkilometer");
+        result.add("remainingRange");
+        result.add("timestamp");
         return result;
     }
 
@@ -130,5 +134,29 @@ public class LogDTO {
 
     public void setBattTemp(int battTemp) {
         this.battTemp = battTemp;
+    }
+
+    public double getMampHoursPerKilometer() {
+        return mampHoursPerKilometer;
+    }
+
+    public void setMampHoursPerKilometer(double mampHoursPerKilometer) {
+        this.mampHoursPerKilometer = mampHoursPerKilometer;
+    }
+
+    public double getRemainingRange() {
+        return remainingRange;
+    }
+
+    public void setRemainingRange(double remainingRange) {
+        this.remainingRange = remainingRange;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

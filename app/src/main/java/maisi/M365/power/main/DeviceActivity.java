@@ -2,13 +2,13 @@ package maisi.M365.power.main;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -72,6 +72,8 @@ public class DeviceActivity extends AppCompatActivity
     private TextView powerMeter;
     private TextView minPowerView;
     private TextView maxPowerView;
+    private TextView efficiencyMeter;
+    private TextView rangeMeter;
     private TextView recoveredPower;
     private TextView spentPower;
     private TextView time;
@@ -88,7 +90,7 @@ public class DeviceActivity extends AppCompatActivity
     private int lastDepth = 0;
     private boolean storagePermission = false;
     private static final int PERMISSION_EXTERNAL_STORAGE = 0;
-    private LinearLayout mRootView;
+    private ConstraintLayout mRootView;
 
     private Runnable updateAmpsRunnable = new Runnable() {
         @Override
@@ -225,6 +227,10 @@ public class DeviceActivity extends AppCompatActivity
 
         maxPowerView = this.findViewById(R.id.maxPowerView);
 
+        efficiencyMeter = this.findViewById(R.id.efficiencyMeter);
+
+        rangeMeter = this.findViewById(R.id.rangeMeter);
+
         recoveredPower = this.findViewById(R.id.recoveredPower);
 
         spentPower = this.findViewById(R.id.spentPower);
@@ -353,8 +359,10 @@ public class DeviceActivity extends AppCompatActivity
                     maxPowerView.setText("max Power: " + (int)Statistics.getMaxPower() + "W");
                     //minPowerView.setText("QueueD: " + Constants.QUEUE_DELAY + "ms");
                     //maxPowerView.setText("Req/Res: " + Statistics.getRequestsSent() + " " + Statistics.getResponseReceived());
+                    efficiencyMeter.setText(Statistics.getMampHoursPerKilometer()+" mAh/Km");
+                    rangeMeter.setText(Statistics.getRemainingRange()+" km "+Statistics.getRemainingCapacity()+" mAh");
                     spentPower.setText("spent: " + df.format(Statistics.getSpent()) + " Wh");
-                    recoveredPower.setText("recoverd: " + df.format(Statistics.getRecovered()) + " Wh");
+                    recoveredPower.setText("recovered: " + df.format(Statistics.getRecovered()) + " Wh");
                     time.setText(Statistics.getCurrDiff() + " ms");
                     life.setText(Statistics.getBatteryLife() + " %");
                     ampMeter.setText(Statistics.getCurrentAmpere() + " A");

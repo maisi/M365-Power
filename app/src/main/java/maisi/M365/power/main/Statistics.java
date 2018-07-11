@@ -1,5 +1,7 @@
 package maisi.M365.power.main;
 
+import android.util.Log;
+
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class Statistics {
@@ -7,8 +9,8 @@ public class Statistics {
     private static double maxPower = 0;
     private static double minPower = -0;
 
-    private static double recovered = 0.0; //watt hours
-    private static double spent = 0.0; //watt hours
+    private static double recovered = 0.0; //Ampere hours
+    private static double spent = 0.0; //Ampere hours
 
     private static double currentVoltage = 0.0;
     private static double currentAmpere = 0.0;
@@ -20,11 +22,15 @@ public class Statistics {
     private static int responseReceived = 1;
 
     private static int batteryLife = 0;
-    private static int remainingCapacity = 7800; //Nennkapazität
+    private static int remainingCapacity = 7800; //Nennkapazität maH
     private static int batteryTemperature = 0;
 
-    private static double distanceTravelled = 0.0; //km
+    private static double distanceTravelled = 0.0001; //km
     private static double currentSpeed = 0.0; //km/h
+
+
+    private static double mampHoursPerKilometer =0.0;
+    private static double remainingRange=0.0;
 
     private static ConcurrentSkipListSet<Double> currentList = new ConcurrentSkipListSet<>();
     private static ConcurrentSkipListSet<Double> speedList = new ConcurrentSkipListSet<>();
@@ -38,7 +44,11 @@ public class Statistics {
         }
         currDiff = diff;
         diff /= 1000;
-        double power = getAveragedPower();
+        double power = getAveragedCurrent();
+        if (Double.isNaN(power)) {
+            power = getCurrentAmpere();
+        }
+
         //Log.d("Stat","seconds:"+diff+" "+testTime+" power:"+power);
         if (power < 0) {
             recovered += ((power / 60 / 60) * diff);
@@ -46,6 +56,25 @@ public class Statistics {
             spent += ((power / 60 / 60) * diff);
         }
         lastTimeStamp = now;
+
+        if (power==0.0) {
+            power = getCurrentAmpere();
+        }
+        Log.d("Stat", "calculateEnergy: "+power+ " speed: "+currentSpeed);
+        if(getCurrentSpeed()>6) {
+            mampHoursPerKilometer = ((power * 1000) / currentSpeed);
+            if (mampHoursPerKilometer < 0.01) {
+                mampHoursPerKilometer = 0.01;
+            }
+            remainingRange = remainingCapacity / mampHoursPerKilometer;
+            if (remainingRange < 0.01) {
+                remainingRange = 0.0;
+            }
+        }
+        else{
+            mampHoursPerKilometer=600; //upper end of a normal city drive for me (75kg)
+            remainingRange = remainingCapacity / mampHoursPerKilometer;
+        }
     }
 
     public static void resetPowerStats() {
@@ -78,6 +107,18 @@ public class Statistics {
             averageCurrent = 0.0;
         }
         return averageCurrent * currentVoltage;
+    }
+
+    public static double getAveragedCurrent() {
+        double currentSum = 0.0;
+        for (double d : currentList) {
+            currentSum += d;
+        }
+        double averageCurrent = (currentSum / currentList.size());
+        if (Double.isNaN(averageCurrent)) {
+            averageCurrent = 0.0;
+        }
+        return averageCurrent;
     }
 
     public static double getMaxPower() {
@@ -176,6 +217,9 @@ public class Statistics {
         logDTO.setRemainingCapacity(getRemainingCapacity());
         logDTO.setDistanceTravelled(getDistanceTravelled());
         logDTO.setBattTemp(getBatteryTemperature());
+        logDTO.setMampHoursPerKilometer(getMampHoursPerKilometer());
+        logDTO.setRemainingRange(getRemainingRange());
+        logDTO.setTimestamp(lastTimeStamp);
 
         currentList.clear();
         speedList.clear();
@@ -218,10 +262,20 @@ public class Statistics {
     }
 
     public static void setCurrentAmpere(double currentAmpere) {
+        Log.d("Stat","Current: "+currentAmpere);
         Statistics.currentAmpere = currentAmpere;
         currentList.add(currentAmpere);
         //calculateEnergy();
         setMaxPower(getPower());
         setMinPower(getPower());
+    }
+
+
+    public static double getMampHoursPerKilometer() {
+        return round(mampHoursPerKilometer,2);
+    }
+
+    public static double getRemainingRange() {
+        return round(remainingRange,1);
     }
 }
