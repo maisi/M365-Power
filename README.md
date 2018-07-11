@@ -1,7 +1,7 @@
 M365 Power
 =====
 
-A little app to display and log (upcoming) data from the Xiaomi M365.
+A little app to display and log data from the Xiaomi M365.
 
 # Credits
 
