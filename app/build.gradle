@@ -30,6 +30,7 @@ dependencies {
     // if you don't use android.app.Fragment you can exclude support for them
     //    exclude module: "support-v13"
     //}
+    implementation 'com.android.support:support-v4:26.1.0'
     annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.2.0"
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:design:27.0.2'

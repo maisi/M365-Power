@@ -51,7 +51,13 @@ public class SuperMasterRequest implements IRequest {
         double dist = distance;
         dist = dist / 100;
         Statistics.setDistanceTravelled(dist);
-        Log.d("SuperDistance","Distance:"+dist);
+
+        temp = request[29] + request[28];
+        int temperature = (short) Integer.parseInt(temp, 16);
+        double temperature1 = temperature;
+        temperature1 = temperature1 / 10;
+        Statistics.setMotorTemperature(temperature1);
+        //Log.d("SuperDistance","Distance:"+dist);
 
         return v + "";
 

@@ -1,10 +1,17 @@
 package maisi.M365.power.main;
 
+import android.support.design.widget.TabLayout;
 import android.util.Log;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class Statistics {
+
+    private static int useAverageAsDefault=0;
+
+
+    private static boolean loggingEnabled=true;
 
     private static double maxPower = 0;
     private static double minPower = -0;
@@ -25,20 +32,80 @@ public class Statistics {
     private static int remainingCapacity = 7800; //Nennkapazität maH
     private static int batteryTemperature = 0;
 
+
+
+    private static double motorTemperature =0;
+
     private static double distanceTravelled = 0.0001; //km
     private static double currentSpeed = 0.0; //km/h
 
 
     private static double mampHoursPerKilometer =0.0;
+    private static int min_speed=4;
+
+
+    private static int default_efficiency=600;
     private static double remainingRange=0.0;
 
     private static ConcurrentSkipListSet<Double> currentList = new ConcurrentSkipListSet<>();
     private static ConcurrentSkipListSet<Double> speedList = new ConcurrentSkipListSet<>();
+    private static ConcurrentSkipListSet<Double> efficiencyList = new ConcurrentSkipListSet<>();
+    private static ConcurrentSkipListSet<Double> averageSpeedList = new ConcurrentSkipListSet<>();
+    public static int getDefault_efficiency() {
+        return default_efficiency;
+    }
+
+    public static void setDefault_efficiency(int new_default_efficiency) {
+        Log.d("stat","default:"+new_default_efficiency);
+        if(new_default_efficiency==-1){
+            new_default_efficiency=getAverageEfficiency();
+            useAverageAsDefault = 1;
+        }
+        else if(new_default_efficiency==-2){
+            new_default_efficiency=getLimitedAverageEfficiency();
+            useAverageAsDefault = 2;
+        }
+        else{
+            useAverageAsDefault = 0;
+        }
+        Statistics.default_efficiency = new_default_efficiency;
+    }
+    public static int getMin_speed() {
+        return min_speed;
+    }
+
+    public static void setMin_speed(int min_speed) {
+        Log.d("stat","min_speed:"+min_speed);
+        Statistics.min_speed = min_speed;
+    }
+
+    public static boolean isLoggingEnabled() {
+        return loggingEnabled;
+    }
+
+    public static void setLoggingEnabled(boolean loggingEnabled) {
+        loggingEnabled = loggingEnabled;
+    }
+
+
+    public static double getMotorTemperature() {
+        return motorTemperature;
+    }
+
+    public static void setMotorTemperature(double motorTemperature) {
+        Statistics.motorTemperature = motorTemperature;
+    }
+    public static int isUseAverageAsDefault() {
+        return useAverageAsDefault;
+    }
+
+    public static void setUseAverageAsDefault(int useAverageAsDefault) {
+        Statistics.useAverageAsDefault = useAverageAsDefault;
+    }
 
     private static void calculateEnergy() {
-        Long now = System.nanoTime();
+        Long now = System.currentTimeMillis();
         double diff = now - lastTimeStamp;
-        diff /= 1000000;
         if (diff > 10000) {
             diff = 500;
         }
@@ -60,8 +127,8 @@ public class Statistics {
         if (power==0.0) {
             power = getCurrentAmpere();
         }
-        Log.d("Stat", "calculateEnergy: "+power+ " speed: "+currentSpeed);
-        if(getCurrentSpeed()>6) {
+        //Log.d("Stat", "calculateEnergy: "+power+ " speed: "+currentSpeed);
+        if(getCurrentSpeed()>=min_speed) {
             mampHoursPerKilometer = ((power * 1000) / currentSpeed);
             if (mampHoursPerKilometer < 0.01) {
                 mampHoursPerKilometer = 0.01;
@@ -70,9 +137,17 @@ public class Statistics {
             if (remainingRange < 0.01) {
                 remainingRange = 0.0;
             }
+            efficiencyList.add(getMampHoursPerKilometer());
         }
         else{
-            mampHoursPerKilometer=600; //upper end of a normal city drive for me (75kg)
+            if(useAverageAsDefault==1){
+                default_efficiency=getAverageEfficiency();
+            }
+            else if(useAverageAsDefault==2)
+            {
+                default_efficiency=getLimitedAverageEfficiency();
+            }
+            mampHoursPerKilometer=default_efficiency;
             remainingRange = remainingCapacity / mampHoursPerKilometer;
         }
     }
@@ -119,6 +194,40 @@ public class Statistics {
             averageCurrent = 0.0;
         }
         return averageCurrent;
+    }
+
+    public static int getAverageEfficiency() {
+        if(efficiencyList.size()==0){
+            return 600; //just started app, no values yet
+        }
+        double sum =efficiencyList.stream().mapToDouble(Double::doubleValue).sum();
+        double avgEff = (sum / efficiencyList.size());
+        return (int)avgEff;
+    }
+
+    public static int getLimitedAverageEfficiency() {
+        if(efficiencyList.size()==0){
+            return 600;
+        }
+
+        double currentSum = 0.0;
+        int i=100;
+        Iterator iterator = efficiencyList.descendingIterator();
+        while(!iterator.hasNext() || i==0){
+            currentSum+=(Double)iterator.next();
+            i--;
+        }
+        double averageCurrent = (currentSum / (100-i));
+
+        //double sum =efficiencyList.stream().mapToDouble(Double::doubleValue).sum();
+        //double avgEff = (sum / efficiencyList.size());
+        return (int)averageCurrent;
+    }
+
+    public static double getAverageSpeed() {
+        double sum =averageSpeedList.stream().mapToDouble(Double::doubleValue).sum();
+        double avgEff = (sum / averageSpeedList.size());
+        return avgEff;
     }
 
     public static double getMaxPower() {
@@ -206,7 +315,7 @@ public class Statistics {
         if (Double.isNaN(averageSpeed)) {
             averageSpeed = getCurrentSpeed();
         }
-
+        averageSpeedList.add(averageSpeed);
         logDTO.setAverageCurrent(round(averageCurrent, 2));
         logDTO.setAveragePower(round(averageCurrent * currentVoltage, 2));
         logDTO.setAverageSpeed(averageSpeed);
@@ -262,7 +371,7 @@ public class Statistics {
     }
 
     public static void setCurrentAmpere(double currentAmpere) {
-        Log.d("Stat","Current: "+currentAmpere);
+        //Log.d("Stat","Current: "+currentAmpere);
         Statistics.currentAmpere = currentAmpere;
         currentList.add(currentAmpere);
         //calculateEnergy();
@@ -277,5 +386,9 @@ public class Statistics {
 
     public static double getRemainingRange() {
         return round(remainingRange,1);
+    }
+
+    public static void activateLogging(boolean enable) {
+        setLoggingEnabled(enable);
     }
 }

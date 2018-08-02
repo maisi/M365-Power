@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="105"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/resetStat"
+        android:orderInCategory="110"
+        android:title="Reset Stats"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/connect"
+        android:orderInCategory="100"
+        android:title="Re/Connect"
+        app:showAsAction="ifRoom" />
+</menu>

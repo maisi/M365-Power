@@ -13,8 +13,11 @@ import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +80,14 @@ public class DeviceActivity extends AppCompatActivity
     private TextView recoveredPower;
     private TextView spentPower;
     private TextView time;
+    private TextView battTemp;
+    private TextView distance;
+    private TextView capacity;
+    private TextView averageSpeed;
+    private TextView averageEfficiency;
+    private TextView motorTemp;
+
+    private Button startHandlerButton;
     //DelayQueue<IRequest> requestQueue = new DelayQueue();
     private Queue<IRequest> requestQueue = new LinkedBlockingQueue();
     private Map<RequestType, IRequest> requestTypes = new HashMap<>();
@@ -89,6 +100,7 @@ public class DeviceActivity extends AppCompatActivity
     private LogWriter logWriter = new LogWriter(this);
     private int lastDepth = 0;
     private boolean storagePermission = false;
+    private boolean handlerStarted=false;
     private static final int PERMISSION_EXTERNAL_STORAGE = 0;
     private ConstraintLayout mRootView;
 
@@ -194,6 +206,7 @@ public class DeviceActivity extends AppCompatActivity
         }
     };
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -233,7 +246,22 @@ public class DeviceActivity extends AppCompatActivity
 
         recoveredPower = this.findViewById(R.id.recoveredPower);
 
+        startHandlerButton = this.findViewById(R.id.start_handler_button);
+
         spentPower = this.findViewById(R.id.spentPower);
+
+        battTemp = this.findViewById(R.id.battTemp);
+
+        distance = this.findViewById(R.id.distanceMeter);
+
+        capacity = this.findViewById(R.id.remainingAmps);
+
+        averageEfficiency = this.findViewById(R.id.AverageEfficiencyMeter);
+
+        averageSpeed = this.findViewById(R.id.averageSpeedMeter);
+
+        motorTemp = this.findViewById(R.id.motorTemp);
+
         time = this.findViewById(R.id.time);
         life = this.findViewById(R.id.life);
         life.setType(RequestType.BATTERYLIFE);
@@ -354,19 +382,26 @@ public class DeviceActivity extends AppCompatActivity
                     powerMeter.setText((int) Statistics.getPower() + "W");
                     DecimalFormat df = new DecimalFormat("#.####");
                     df.setRoundingMode(RoundingMode.CEILING);
-
+                    DecimalFormat df1 = new DecimalFormat("##.#");
+                    df.setRoundingMode(RoundingMode.CEILING);
                     minPowerView.setText("min Power: " + (int)Statistics.getMinPower() + "W");
                     maxPowerView.setText("max Power: " + (int)Statistics.getMaxPower() + "W");
                     //minPowerView.setText("QueueD: " + Constants.QUEUE_DELAY + "ms");
                     //maxPowerView.setText("Req/Res: " + Statistics.getRequestsSent() + " " + Statistics.getResponseReceived());
                     efficiencyMeter.setText(Statistics.getMampHoursPerKilometer()+" mAh/Km");
-                    rangeMeter.setText(Statistics.getRemainingRange()+" km "+Statistics.getRemainingCapacity()+" mAh");
-                    spentPower.setText("spent: " + df.format(Statistics.getSpent()) + " Wh");
-                    recoveredPower.setText("recovered: " + df.format(Statistics.getRecovered()) + " Wh");
+                    rangeMeter.setText(Statistics.getRemainingRange()+" km ");
+                    spentPower.setText("spent: " + df.format(Statistics.getSpent()) + " Ah");
+                    recoveredPower.setText("recovered: " + df.format(Statistics.getRecovered()) + " Ah");
                     time.setText(Statistics.getCurrDiff() + " ms");
                     life.setText(Statistics.getBatteryLife() + " %");
                     ampMeter.setText(Statistics.getCurrentAmpere() + " A");
                     voltageMeter.setText(Statistics.getCurrentVoltage() + " V");
+                    battTemp.setText(Statistics.getBatteryTemperature()+ " °C");
+                    motorTemp.setText(Statistics.getMotorTemperature()+ " °C");
+                    capacity.setText(Statistics.getRemainingCapacity()+ "");
+                    distance.setText(Statistics.getDistanceTravelled()+ " km");
+                    averageEfficiency.setText(Statistics.getAverageEfficiency()+ " mAh/km");
+                    averageSpeed.setText(df1.format(Statistics.getAverageSpeed())+ " km/h");
                 });
             }
         };
@@ -387,34 +422,39 @@ public class DeviceActivity extends AppCompatActivity
     }
 
     public void startHandler(View view) {
-        if (!isConnected()) {
-            doConnect();
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
+        if(!handlerStarted) {
+            if (!isConnected()) {
+                doConnect();
+                Handler handler = new Handler();
+                handler.postDelayed(() -> {
                     handler1.post(process);
                     handler.post(runnableMeta);
-                }
-            }, 2000);
+                }, 2000);
+            } else {
+                handler1.post(process);
+                handler.post(runnableMeta);
+            }
+            startHandlerButton.setText("Stop Handler");
+            handlerStarted=true;
         }
-       else{ handler1.post(process);
-        handler.post(runnableMeta);}
-
-
-
+        else{
+            stopHandler();
+            handlerStarted=false;
+        }
     }
 
     public void reset(View view) {
         Statistics.resetPowerStats();
     }
 
-    public void stopHandler(View view) {
+    public void stopHandler() {
         Log.d(TAG,"Stop Handler called");
         handler.removeCallbacksAndMessages(null);
         handler1.removeCallbacksAndMessages(null);
         requestQueue.clear();
         logWriter.writeLog(true);
         Toast.makeText(this, "Logs in:"+logWriter.getPath(), Toast.LENGTH_LONG).show();
+        startHandlerButton.setText("Start Handler");
     }
 
     private void doConnect() {
@@ -443,7 +483,7 @@ public class DeviceActivity extends AppCompatActivity
             connectionDisposable.dispose();
         }
         time.setText("disconnected");
-        stopHandler(mRootView);
+        stopHandler();
     }
 
     private void dispose() {
@@ -526,6 +566,36 @@ public class DeviceActivity extends AppCompatActivity
             }
         }
     }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings) {
+            // launch settings activity
+            Log.d(TAG,"settings clicked");
+            startActivity(new Intent(DeviceActivity.this, SettingsActivity.class));
+            return true;
+        }
+        else if(id == R.id.resetStat){
+            Statistics.resetPowerStats();
+            return true;
+        }
+        else if(id == R.id.connect){
+            doConnect();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
 
 
