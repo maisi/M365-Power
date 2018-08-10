@@ -30,12 +30,15 @@ import com.polidea.rxandroidble2.RxBleDevice;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +51,9 @@ import maisi.M365.power.main.Requests.DistanceRequest;
 import maisi.M365.power.main.Requests.SpeedRequest;
 import maisi.M365.power.main.Requests.SuperBatteryRequest;
 import maisi.M365.power.main.Requests.SuperMasterRequest;
+import maisi.M365.power.main.Requests.SwitchRequests.CheckLock;
+import maisi.M365.power.main.Requests.SwitchRequests.LockOff;
+import maisi.M365.power.main.Requests.SwitchRequests.LockOn;
 import maisi.M365.power.main.Requests.VoltageRequest;
 import maisi.M365.power.util.HexString;
 import maisi.M365.power.util.LogWriter;
@@ -89,7 +95,7 @@ public class DeviceActivity extends AppCompatActivity
 
     private Button startHandlerButton;
     //DelayQueue<IRequest> requestQueue = new DelayQueue();
-    private Queue<IRequest> requestQueue = new LinkedBlockingQueue();
+    private Deque<IRequest> requestQueue = new LinkedBlockingDeque<>();
     private Map<RequestType, IRequest> requestTypes = new HashMap<>();
     private List<SpecialTextView> textViews = new ArrayList<>();
     private String[] lastResponse;
@@ -192,6 +198,7 @@ public class DeviceActivity extends AppCompatActivity
             setupNotificationAndSend();
             try {
                 String command = requestQueue.remove().getRequestString();
+                Log.d(TAG,"command:"+command);
                 if (isConnected()) {
                     connection.writeCharacteristic(UUID.fromString(Constants.CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
                     //Log.d(TAG, "Req sent: " + command);
@@ -202,9 +209,9 @@ public class DeviceActivity extends AppCompatActivity
                 handler1.postDelayed(this, Constants.QUEUE_DELAY);
             }
 
-
         }
     };
+    private Menu menu;
 
 
     @Override
@@ -283,6 +290,7 @@ public class DeviceActivity extends AppCompatActivity
         requestTypes.put(RequestType.DISTANCE, new DistanceRequest());
         requestTypes.put(RequestType.SUPERMASTER, new SuperMasterRequest());
         requestTypes.put(RequestType.SUPERBATTERY, new SuperBatteryRequest());
+        requestTypes.put(RequestType.LOCK,new CheckLock());
 
         lastTimeStamp = System.nanoTime();
         mRootView= findViewById(R.id.root);
@@ -331,8 +339,9 @@ public class DeviceActivity extends AppCompatActivity
             temp[0] = bytes[i];
             hexString[i] = HexString.bytesToHex(temp);
         }
+
         String requestBit = hexString[5];
-        //Log.d(TAG, "requestBit: "+requestBit+" " + Arrays.toString(hexString));
+        Log.d(TAG, "requestBit: "+requestBit+" " + Arrays.toString(hexString));
 
         if (bytes.length > 10) { //Super handling
             if (requestBit.equals(requestTypes.get(RequestType.SUPERMASTER).getRequestBit())) {
@@ -365,6 +374,10 @@ public class DeviceActivity extends AppCompatActivity
             for (IRequest e : requestTypes.values()) {
                 if (e.getRequestBit().equals(requestBit)) {
                     String temp = e.handleResponse(hexString);
+                    if(e.getRequestType()==RequestType.LOCK){
+                            MenuItem lock = menu.findItem(R.id.lock);
+                            runOnUiThread(() -> lock.setChecked(Statistics.isScooterLocked()));
+                    }
                     for (SpecialTextView f : textViews) {
                         if (f.getType() == e.getRequestType()) {
                             runOnUiThread(() -> f.setText(temp));
@@ -429,13 +442,16 @@ public class DeviceActivity extends AppCompatActivity
                 handler.postDelayed(() -> {
                     handler1.post(process);
                     handler.post(runnableMeta);
-                }, 2000);
+                }, 5000);
             } else {
                 handler1.post(process);
                 handler.post(runnableMeta);
             }
             startHandlerButton.setText("Stop Handler");
             handlerStarted=true;
+            checkLock(); //make sure to be first
+            checkLock(); //make sure to be first
+            checkLock(); //make sure to be first
         }
         else{
             stopHandler();
@@ -570,6 +586,8 @@ public class DeviceActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d(TAG,"IMP create called");
+        this.menu=menu;
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -592,11 +610,33 @@ public class DeviceActivity extends AppCompatActivity
             doConnect();
             return true;
         }
-
+        else if(id == R.id.lock){
+            checkLock();
+            if(Statistics.isScooterLocked()){
+                lockOff();
+                item.setChecked(false);
+            }
+            else {
+                lockOn();
+                item.setChecked(true);
+            }
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
 
+    private void lockOn() {
+        requestQueue.addFirst(new LockOn());
+    }
+
+    private void lockOff() {
+        requestQueue.addFirst(new LockOff());
+    }
+
+    private void checkLock() {
+        requestQueue.addFirst(new CheckLock());
+    }
 
 
 }

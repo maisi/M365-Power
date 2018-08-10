@@ -13,6 +13,8 @@ public class Statistics {
 
     private static boolean loggingEnabled=true;
 
+    private static boolean scooterLocked=false;
+
     private static double maxPower = 0;
     private static double minPower = -0;
 
@@ -32,13 +34,10 @@ public class Statistics {
     private static int remainingCapacity = 7800; //Nennkapazität maH
     private static int batteryTemperature = 0;
 
-
-
     private static double motorTemperature =0;
 
     private static double distanceTravelled = 0.0001; //km
     private static double currentSpeed = 0.0; //km/h
-
 
     private static double mampHoursPerKilometer =0.0;
     private static int min_speed=4;
@@ -390,5 +389,13 @@ public class Statistics {
 
     public static void activateLogging(boolean enable) {
         setLoggingEnabled(enable);
+    }
+
+    public static boolean isScooterLocked() {
+        return scooterLocked;
+    }
+
+    public static void setScooterLocked(boolean scooterLocked) {
+        Statistics.scooterLocked = scooterLocked;
     }
 }

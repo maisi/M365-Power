@@ -15,4 +15,10 @@
         android:orderInCategory="100"
         android:title="Re/Connect"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/lock"
+        android:orderInCategory="100"
+        android:title="Locked"
+        android:checkable="true"
+        app:showAsAction="never" />
 </menu>
