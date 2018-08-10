@@ -15,6 +15,10 @@ public class Statistics {
 
     private static boolean scooterLocked=false;
 
+    private static boolean cruiseActive = false;
+
+    private static boolean lightActive = false;
+
     private static double maxPower = 0;
     private static double minPower = -0;
 
@@ -397,5 +401,21 @@ public class Statistics {
 
     public static void setScooterLocked(boolean scooterLocked) {
         Statistics.scooterLocked = scooterLocked;
+    }
+
+    public static boolean isCruiseActive() {
+        return cruiseActive;
+    }
+
+    public static void setCruiseActive(boolean cruiseActive) {
+        Statistics.cruiseActive = cruiseActive;
+    }
+
+    public static boolean isLightActive() {
+        return lightActive;
+    }
+
+    public static void setLightActive(boolean lightActive) {
+        Statistics.lightActive = lightActive;
     }
 }

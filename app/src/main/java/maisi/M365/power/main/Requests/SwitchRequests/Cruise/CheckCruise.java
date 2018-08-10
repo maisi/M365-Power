@@ -1,4 +1,4 @@
-package maisi.M365.power.main.Requests.SwitchRequests;
+package maisi.M365.power.main.Requests.SwitchRequests.Cruise;
 
 import android.util.Log;
 
@@ -10,13 +10,13 @@ import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
-public class CheckLock implements IRequest {
+public class CheckCruise implements IRequest {
     private static int delay = 100;
-    private final String requestBit = "B2";
-    private final RequestType requestType = RequestType.LOCK;
+    private final String requestBit = "7C";
+    private final RequestType requestType = RequestType.CRUISE;
     private long startTime;
 
-    public CheckLock() {
+    public CheckCruise() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -30,7 +30,7 @@ public class CheckLock implements IRequest {
         return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_M365)
                 .setRW(NbCommands.READ)
-                .setPosition(0xB2)
+                .setPosition(0x7C)
                 .setPayload(0x02)
                 .build();
     }
@@ -42,11 +42,11 @@ public class CheckLock implements IRequest {
 
     @Override
     public String handleResponse(String[] request) {
-        if(request[6].equals("02")){
-            Statistics.setScooterLocked(true);
+        if(request[6].equals("01")){
+            Statistics.setCruiseActive(true);
         }
         else{
-            Statistics.setScooterLocked(false);
+            Statistics.setCruiseActive(false);
         }
         return "";
     }

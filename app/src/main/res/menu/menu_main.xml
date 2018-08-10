@@ -21,4 +21,16 @@
         android:title="Locked"
         android:checkable="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/cruise"
+        android:orderInCategory="100"
+        android:title="Cruise Mode"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/light"
+        android:orderInCategory="100"
+        android:title="Rear Light"
+        android:checkable="true"
+        app:showAsAction="never" />
 </menu>
