@@ -19,6 +19,8 @@ public class Statistics {
 
     private static boolean lightActive = false;
 
+    private static int recoveryMode =0; //0=weak,1=medium,2=strong
+
     private static double maxPower = 0;
     private static double minPower = -0;
 
@@ -417,5 +419,13 @@ public class Statistics {
 
     public static void setLightActive(boolean lightActive) {
         Statistics.lightActive = lightActive;
+    }
+
+    public static int getRecoveryMode() {
+        return recoveryMode;
+    }
+
+    public static void setRecoveryMode(int recoveryMode) {
+        Statistics.recoveryMode = recoveryMode;
     }
 }

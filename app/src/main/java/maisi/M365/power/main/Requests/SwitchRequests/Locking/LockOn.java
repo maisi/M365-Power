@@ -10,7 +10,7 @@ import maisi.M365.power.util.NbMessage;
 public class LockOn implements IRequest {
     private static int delay = 100;
     private final String requestBit = "70";
-    private final RequestType requestType = RequestType.LOCK;
+    private final RequestType requestType = RequestType.NOCOUNT;
     private long startTime;
 
     public LockOn() {

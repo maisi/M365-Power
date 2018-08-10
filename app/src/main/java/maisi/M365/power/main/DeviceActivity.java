@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +58,10 @@ import maisi.M365.power.main.Requests.SwitchRequests.Light.LightOn;
 import maisi.M365.power.main.Requests.SwitchRequests.Locking.CheckLock;
 import maisi.M365.power.main.Requests.SwitchRequests.Locking.LockOff;
 import maisi.M365.power.main.Requests.SwitchRequests.Locking.LockOn;
+import maisi.M365.power.main.Requests.SwitchRequests.Recovery.CheckRecovery;
+import maisi.M365.power.main.Requests.SwitchRequests.Recovery.MediumMode;
+import maisi.M365.power.main.Requests.SwitchRequests.Recovery.StrongMode;
+import maisi.M365.power.main.Requests.SwitchRequests.Recovery.WeakMode;
 import maisi.M365.power.main.Requests.VoltageRequest;
 import maisi.M365.power.util.HexString;
 import maisi.M365.power.util.LogWriter;
@@ -100,7 +105,7 @@ public class DeviceActivity extends AppCompatActivity
     private Deque<IRequest> requestQueue = new LinkedBlockingDeque<>();
     private Map<RequestType, IRequest> requestTypes = new HashMap<>();
     private List<SpecialTextView> textViews = new ArrayList<>();
-    private List<RequestType> checkFirst = new ArrayList<>();
+    private ConcurrentSkipListSet<RequestType> checkFirst = new ConcurrentSkipListSet<>();
     private String[] lastResponse;
     private HandlerThread handlerThread;
     private HandlerThread handlerThread1;
@@ -133,7 +138,7 @@ public class DeviceActivity extends AppCompatActivity
         @Override
         public void run() {
             logWriter.writeLog(false);
-            handler.postDelayed(this, Constants.getDistanceDelay());
+            handler.postDelayed(this, Constants.getLogDelay());
         }
     };
     private Runnable runnableMeta = new Runnable() {
@@ -142,6 +147,7 @@ public class DeviceActivity extends AppCompatActivity
             Log.d(TAG, "Queue Size:" + requestQueue.size() + " QueueDelay:" + Constants.QUEUE_DELAY + " BaseDelay:" + Constants.BASE_DELAY);
             Log.d(TAG, "Sent:" + Statistics.getRequestsSent() + " Received:" + Statistics.getResponseReceived() + " Ratio:" + (double) Statistics.getRequestsSent() / Statistics.getResponseReceived());
             adjustTiming();
+            fillCheckFirstList();
             if (isConnected()) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(updateSuperRunnable, Constants.getSpeedDelay());
@@ -161,12 +167,16 @@ public class DeviceActivity extends AppCompatActivity
             }
             setupNotificationAndSend();
             try {
-                String command = requestQueue.remove().getRequestString();
+                IRequest toSend= requestQueue.remove();
+                String command = toSend.getRequestString();
                 Log.d(TAG,"command:"+command);
                 if (isConnected()) {
                     connection.writeCharacteristic(UUID.fromString(Constants.CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
                     //Log.d(TAG, "Req sent: " + command);
-                    Statistics.countRequest();
+                    if(toSend.getRequestType()!=RequestType.NOCOUNT){
+                        Statistics.countRequest();
+                    }
+
                 }
             } catch (NoSuchElementException e) {
             } finally {
@@ -258,10 +268,9 @@ public class DeviceActivity extends AppCompatActivity
         requestTypes.put(RequestType.LOCK,new CheckLock());
         requestTypes.put(RequestType.CRUISE,new CheckCruise());
         requestTypes.put(RequestType.LIGHT,new CheckLight());
+        requestTypes.put(RequestType.RECOVERY,new CheckRecovery());
 
-        checkFirst.add(RequestType.CRUISE);
-        checkFirst.add(RequestType.LOCK);
-        checkFirst.add(RequestType.LIGHT);
+        fillCheckFirstList();
 
         lastTimeStamp = System.nanoTime();
         mRootView= findViewById(R.id.root);
@@ -280,6 +289,14 @@ public class DeviceActivity extends AppCompatActivity
         else{
             storagePermission=true;
         }
+    }
+
+    private void fillCheckFirstList() {
+        checkFirst.clear();
+        checkFirst.add(RequestType.CRUISE);
+        checkFirst.add(RequestType.LOCK);
+        checkFirst.add(RequestType.LIGHT);
+        checkFirst.add(RequestType.RECOVERY);
     }
 
     @SuppressLint("CheckResult")
@@ -312,7 +329,7 @@ public class DeviceActivity extends AppCompatActivity
         }
 
         String requestBit = hexString[5];
-        Log.d(TAG, "requestBit: "+requestBit+" " + Arrays.toString(hexString));
+        //Log.d(TAG, "requestBit: "+requestBit+" " + Arrays.toString(hexString));
 
         if (bytes.length > 10) { //Super handling
             if (requestBit.equals(requestTypes.get(RequestType.SUPERMASTER).getRequestBit())) {
@@ -348,9 +365,15 @@ public class DeviceActivity extends AppCompatActivity
                     if(e.getRequestType()==RequestType.LOCK){
                         MenuItem lock = menu.findItem(R.id.lock);
                         runOnUiThread(() -> lock.setChecked(Statistics.isScooterLocked()));
-                        if(checkFirst.remove(RequestType.LOCK)){
+                        if(Statistics.isScooterLocked()){
+                            Constants.BASE_DELAY=10000;
+                        }
+                        else{
+                            Constants.BASE_DELAY=300;
+                        }
+                        if(checkFirst.remove(RequestType.LOCK) && !handlerStarted){
                             requestQueue.clear(); //remove unnecessary requests
-                            if(checkFirst.isEmpty()){
+                            if(checkFirst.isEmpty()&& !handlerStarted){
                                 handler1.removeCallbacksAndMessages(null);
                             }
                         }
@@ -358,9 +381,9 @@ public class DeviceActivity extends AppCompatActivity
                     else if(e.getRequestType()==RequestType.CRUISE){
                         MenuItem cruise = menu.findItem(R.id.cruise);
                         runOnUiThread(() -> cruise.setChecked(Statistics.isCruiseActive()));
-                        if(checkFirst.remove(RequestType.CRUISE)){
+                        if(checkFirst.remove(RequestType.CRUISE)&& !handlerStarted){
                             requestQueue.clear();
-                            if(checkFirst.isEmpty()){
+                            if(checkFirst.isEmpty()&& !handlerStarted){
                                 handler1.removeCallbacksAndMessages(null);
                             }
                         }
@@ -368,10 +391,42 @@ public class DeviceActivity extends AppCompatActivity
                     else if(e.getRequestType()==RequestType.LIGHT){
                         MenuItem light = menu.findItem(R.id.light);
                         runOnUiThread(() -> light.setChecked(Statistics.isLightActive()));
-                        if(checkFirst.remove(RequestType.LIGHT)){
+                        if(checkFirst.remove(RequestType.LIGHT)&& !handlerStarted){
                             requestQueue.clear();
-                            if(checkFirst.isEmpty()){
+                            if(checkFirst.isEmpty()&& !handlerStarted){
                                 handler1.removeCallbacksAndMessages(null);
+                            }
+                        }
+                    }
+                    else if(e.getRequestType()==RequestType.RECOVERY){
+
+
+
+                        if(temp.equals("00")){
+                            //Log.d(TAG,"weak setting");
+                            MenuItem weak = menu.findItem(R.id.weak);
+                            runOnUiThread(() -> weak.setChecked(true));
+                            //runOnUiThread(() -> medium.setChecked(false));
+                            //runOnUiThread(() -> strong.setChecked(false));
+                        }
+                        else if(temp.equals("01")){
+                            //Log.d(TAG,"medium setting");
+                            //runOnUiThread(() -> weak.setChecked(false));
+                            MenuItem medium = menu.findItem(R.id.medium);
+                            runOnUiThread(() -> medium.setChecked(true));
+                            //runOnUiThread(() -> strong.setChecked(false));
+                        }
+                        else if(temp.equals("02")){
+                            //Log.d(TAG,"strong setting");
+                            //runOnUiThread(() -> weak.setChecked(false));
+                            //runOnUiThread(() -> medium.setChecked(false));
+                            MenuItem strong = menu.findItem(R.id.strong);
+                            runOnUiThread(() -> strong.setChecked(true));
+                        }
+                        if(checkFirst.remove(RequestType.RECOVERY)&& !handlerStarted){
+                            requestQueue.clear();
+                            if(checkFirst.isEmpty() && !handlerStarted){
+                               handler1.removeCallbacksAndMessages(null);
                             }
                         }
                     }
@@ -432,7 +487,6 @@ public class DeviceActivity extends AppCompatActivity
     }
 
     public void startHandler(View view) {
-        Constants.QUEUE_DELAY=400; //reset delay to normal value
         if(!handlerStarted) {
             if (!isConnected()) {
                 doConnect();
@@ -507,6 +561,7 @@ public class DeviceActivity extends AppCompatActivity
     }
 
     private void onConnectionReceived(RxBleConnection connection) {
+        fillCheckFirstList();
         Toast.makeText(DeviceActivity.this, "Starting preliminary activities", Toast.LENGTH_LONG).show();
         this.connection = connection;
         this.time.setText("connected");
@@ -515,9 +570,8 @@ public class DeviceActivity extends AppCompatActivity
     }
 
     private void checkFirst() {
-        Constants.QUEUE_DELAY=200; //spam a little to get results faster
         for(RequestType e:checkFirst){
-            requestQueue.add(requestTypes.get(e));
+            requestQueue.addFirst(requestTypes.get(e));
         }
     }
 
@@ -615,7 +669,6 @@ public class DeviceActivity extends AppCompatActivity
             return true;
         }
         else if(id == R.id.lock){
-            checkLock();
             if(Statistics.isScooterLocked()){
                 lockOff();
                 item.setChecked(false);
@@ -627,7 +680,6 @@ public class DeviceActivity extends AppCompatActivity
             return true;
         }
         else if(id == R.id.cruise){
-            checkCruise();
             if(Statistics.isCruiseActive()){
                 cruiseOff();
                 item.setChecked(false);
@@ -639,7 +691,6 @@ public class DeviceActivity extends AppCompatActivity
             return true;
         }
         else if(id == R.id.light){
-            checkLight();
             if(Statistics.isLightActive()){
                 lightOff();
                 item.setChecked(false);
@@ -650,7 +701,42 @@ public class DeviceActivity extends AppCompatActivity
             }
             return true;
         }
+        else if(id == R.id.weak){
+            if(Statistics.getRecoveryMode()!=0){
+                setWeakMode();
+            }
+            return true;
+        }
+        else if(id == R.id.medium){
+            if(Statistics.getRecoveryMode()!=1){
+                setMediumMode();
+            }
+            return true;
+        }
+        else if(id == R.id.strong){
+            if(Statistics.getRecoveryMode()!=2){
+                setStrongMode();
+            }
+            return true;
+        }
+        fillCheckFirstList();
         return super.onOptionsItemSelected(item);
+    }
+
+    private void checkRecovery(){
+        requestQueue.add(new CheckRecovery());
+    }
+
+    private void setStrongMode() {
+        requestQueue.addFirst(new StrongMode());
+    }
+
+    private void setMediumMode() {
+        requestQueue.addFirst(new MediumMode());
+    }
+
+    private void setWeakMode() {
+        requestQueue.addFirst(new WeakMode());
     }
 
     private void lightOn() {
@@ -661,10 +747,6 @@ public class DeviceActivity extends AppCompatActivity
         requestQueue.addFirst(new LightOff());
     }
 
-    private void checkLight() {
-        requestQueue.addFirst(new CheckLight());
-    }
-
     private void cruiseOn() {
         requestQueue.addFirst(new CruiseOn());
     }
@@ -672,11 +754,6 @@ public class DeviceActivity extends AppCompatActivity
     private void cruiseOff() {
         requestQueue.addFirst(new CruiseOff());
     }
-
-    private void checkCruise(){
-        requestQueue.addFirst(new CheckCruise());
-    }
-
 
     private void lockOn() {
         requestQueue.addFirst(new LockOn());
@@ -686,9 +763,6 @@ public class DeviceActivity extends AppCompatActivity
         requestQueue.addFirst(new LockOff());
     }
 
-    private void checkLock() {
-        requestQueue.addFirst(new CheckLock());
-    }
 
 
 }

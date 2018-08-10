@@ -33,4 +33,20 @@
         android:title="Rear Light"
         android:checkable="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/recovery"
+        android:orderInCategory="100"
+        android:title="Recovery Mode"
+        app:showAsAction="never">
+        <menu>
+        <group android:checkableBehavior="single">
+        <item android:id="@+id/weak"
+            android:title="weak" />
+        <item android:id="@+id/medium"
+            android:title="medium" />
+        <item android:id="@+id/strong"
+             android:title="strong" />
+        </group>
+        </menu>
+    </item>
 </menu>

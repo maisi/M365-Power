@@ -1,8 +1,6 @@
-package maisi.M365.power.main.Requests.SwitchRequests.Cruise;
+package maisi.M365.power.main.Requests.SwitchRequests.Recovery;
 
 import android.util.Log;
-
-import java.util.Arrays;
 
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
@@ -10,13 +8,13 @@ import maisi.M365.power.main.Statistics;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
-public class CheckCruise implements IRequest {
+public class CheckRecovery implements IRequest {
     private static int delay = 100;
-    private final String requestBit = "7C";
-    private final RequestType requestType = RequestType.CRUISE;
+    private final String requestBit = "7B";
+    private final RequestType requestType = RequestType.RECOVERY;
     private long startTime;
 
-    public CheckCruise() {
+    public CheckRecovery() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -30,7 +28,7 @@ public class CheckCruise implements IRequest {
         return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_M365)
                 .setRW(NbCommands.READ)
-                .setPosition(0x7C)
+                .setPosition(0x7B)
                 .setPayload(0x02)
                 .build();
     }
@@ -42,13 +40,19 @@ public class CheckCruise implements IRequest {
 
     @Override
     public String handleResponse(String[] request) {
-        if(request[6].equals("01")){
-            Statistics.setCruiseActive(true);
+        if(request[6].equals("00")){
+            //Log.d("REC","weak");
+            Statistics.setRecoveryMode(0);
         }
-        else{
-            Statistics.setCruiseActive(false);
+        else if(request[6].equals("01")){
+            //Log.d("REC","medium");
+            Statistics.setRecoveryMode(1);
         }
-        return "";
+        else if(request[6].equals("02")){
+            //Log.d("REC","strong");
+            Statistics.setRecoveryMode(2);
+        }
+        return request[6];
     }
 
     @Override

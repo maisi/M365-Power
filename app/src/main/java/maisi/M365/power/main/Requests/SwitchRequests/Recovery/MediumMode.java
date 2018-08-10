@@ -7,13 +7,13 @@ import maisi.M365.power.main.RequestType;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
-public class WeakMode implements IRequest {
+public class MediumMode implements IRequest {
     private static int delay = 100;
-    private final String requestBit = "7C";
-    private final RequestType requestType = RequestType.CRUISE;
+    private final String requestBit = "7B";
+    private final RequestType requestType = RequestType.NOCOUNT;
     private long startTime;
 
-    public WeakMode() {
+    public MediumMode() {
         this.startTime = System.currentTimeMillis() + delay;
     }
 
@@ -27,8 +27,8 @@ public class WeakMode implements IRequest {
         return new NbMessage()
                 .setDirection(NbCommands.MASTER_TO_M365)
                 .setRW(NbCommands.WRITE)
-                .setPosition(0x7C)
-                .setPayload(0x0000)
+                .setPosition(0x7B)
+                .setPayload(0x0001)
                 .build();
     }
 

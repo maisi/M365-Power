@@ -10,7 +10,7 @@ import maisi.M365.power.util.NbMessage;
 public class CruiseOff implements IRequest {
     private static int delay = 100;
     private final String requestBit = "7C";
-    private final RequestType requestType = RequestType.CRUISE;
+    private final RequestType requestType = RequestType.NOCOUNT;
     private long startTime;
 
     public CruiseOff() {

@@ -10,7 +10,7 @@ import maisi.M365.power.util.NbMessage;
 public class LightOn implements IRequest {
     private static int delay = 100;
     private final String requestBit = "7D";
-    private final RequestType requestType = RequestType.LIGHT;
+    private final RequestType requestType = RequestType.NOCOUNT;
     private long startTime;
 
     public LightOn() {

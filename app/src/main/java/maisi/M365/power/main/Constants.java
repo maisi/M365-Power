@@ -33,4 +33,8 @@ public class Constants {
     public static int getDistanceDelay() {
         return DISTANCE_DELAY + BASE_DELAY;
     }
+
+    public static int getLogDelay() {
+        return 500;
+    }
 }
