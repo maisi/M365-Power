@@ -24,4 +24,4 @@ and Camilo Ruiz (CamiAlfa) for his work on the BLE protocol of the scooter: http
 
 # License
 
-Apache License Version 2.  
+GNU General Public License v3.0 
