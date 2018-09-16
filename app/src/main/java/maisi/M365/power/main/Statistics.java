@@ -114,7 +114,7 @@ public class Statistics {
         if (diff > 10000) {
             diff = 500;
         }
-        currDiff = diff;
+        //currDiff = diff;
         diff /= 1000;
         double power = getAveragedCurrent();
         if (Double.isNaN(power)) {
@@ -127,7 +127,7 @@ public class Statistics {
         } else if (power > 0) {
             spent += ((power / 60 / 60) * diff);
         }
-        lastTimeStamp = now;
+        //lastTimeStamp = now;
 
         if (power==0.0) {
             power = getCurrentAmpere();
@@ -382,6 +382,15 @@ public class Statistics {
         //calculateEnergy();
         setMaxPower(getPower());
         setMinPower(getPower());
+        Long now = System.currentTimeMillis();
+        double diff = now - lastTimeStamp;
+        if (diff > 10000) {
+            diff = 500;
+        }
+        if(diff >50){
+            currDiff = diff;
+        }
+        lastTimeStamp = now;
     }
 
 

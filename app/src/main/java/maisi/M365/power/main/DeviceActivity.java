@@ -115,6 +115,7 @@ public class DeviceActivity extends AppCompatActivity
     private int lastDepth = 0;
     private boolean storagePermission = false;
     private boolean handlerStarted=false;
+    private boolean runOnce = false;
     private static final int PERMISSION_EXTERNAL_STORAGE = 0;
     private ConstraintLayout mRootView;
 
@@ -147,15 +148,21 @@ public class DeviceActivity extends AppCompatActivity
             Log.d(TAG, "Queue Size:" + requestQueue.size() + " QueueDelay:" + Constants.QUEUE_DELAY + " BaseDelay:" + Constants.BASE_DELAY);
             Log.d(TAG, "Sent:" + Statistics.getRequestsSent() + " Received:" + Statistics.getResponseReceived() + " Ratio:" + (double) Statistics.getRequestsSent() / Statistics.getResponseReceived());
             adjustTiming();
-            fillCheckFirstList();
-            if (isConnected()) {
+
+
+            if (isConnected() && !runOnce) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(updateSuperRunnable, Constants.getSpeedDelay());
                 handler.postDelayed(updateSuperBatteryRunnable, Constants.getAmpereDelay());
                 if(storagePermission){
                     handler.postDelayed(getLogsRunnable, 2000);
                 }
-                handler.postDelayed(this, 10000);
+                handler.postDelayed(this, 30000);
+                runOnce=true;
+            }
+
+            if(Statistics.getCurrentSpeed()<3){
+                fillCheckFirstList();
             }
         }
     };
@@ -169,7 +176,7 @@ public class DeviceActivity extends AppCompatActivity
             try {
                 IRequest toSend= requestQueue.remove();
                 String command = toSend.getRequestString();
-                Log.d(TAG,"command:"+command);
+                //Log.d(TAG,"command:"+command);
                 if (isConnected()) {
                     connection.writeCharacteristic(UUID.fromString(Constants.CHAR_WRITE), HexString.hexToBytes(command)).subscribe();
                     //Log.d(TAG, "Req sent: " + command);
@@ -344,7 +351,7 @@ public class DeviceActivity extends AppCompatActivity
                 currDiff = diff;
 
                 lastTimeStamp = now;
-                Log.d(TAG, "time in ms:" + diff);
+                Log.d(TAG, "super battery time in ms:" + diff);
                 requestTypes.get(RequestType.SUPERBATTERY).handleResponse(hexString);
             } else {
                 String[] combinedRespose = new String[lastResponse.length + hexString.length];
@@ -358,7 +365,8 @@ public class DeviceActivity extends AppCompatActivity
                 }
             }
         } else {
-            Statistics.countRespnse();
+            Log.d(TAG, "Other stuff received");
+            //Statistics.countRespnse();
             for (IRequest e : requestTypes.values()) {
                 if (e.getRequestBit().equals(requestBit)) {
                     String temp = e.handleResponse(hexString);
@@ -641,6 +649,7 @@ public class DeviceActivity extends AppCompatActivity
             }
         }
     }
+
 
     //------MENU------
     @Override
