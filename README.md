@@ -10,7 +10,8 @@ Features:
 * Logging of most stats in a csv file
 
 Todo:
-* Finish and extend settings 
+* Finish and extend settings
+* Write some code
 * Add scooter settings: Regenerative breaking, cruise mode 
 * Add scooter features: Locking, rear light 
 * Make UI customizeable

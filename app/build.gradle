@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+//    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "maisi.M365.power"
@@ -34,4 +34,6 @@ dependencies {
     annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.2.0"
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:design:27.0.2'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.13.1'
 }
