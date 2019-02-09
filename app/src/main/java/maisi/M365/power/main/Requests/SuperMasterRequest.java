@@ -45,11 +45,9 @@ public class SuperMasterRequest implements IRequest {
         Statistics.setSpeed(v);
         v = Statistics.round(v, 1);
 
-        temp = request[25] + request[24];
-        int distance = (short) Integer.parseInt(temp, 16);
 
-        double dist = distance;
-        dist = dist / 100;
+        double dist = getDistTotal(request);
+        Log.i("TOtal distance is: ", "v: " + dist);
         Statistics.setDistanceTravelled(dist);
 
         temp = request[29] + request[28];
@@ -61,6 +59,17 @@ public class SuperMasterRequest implements IRequest {
 
         return v + "";
 
+    }
+
+    private double getDistTotal(String[] request) {
+        String temp;
+        temp = request[23] + request[22] +  request[21] + request[20];
+        int distance = Integer.parseInt(temp, 16);
+
+        double dist = distance;
+        dist = dist / 1000;
+
+        return dist;
     }
 
     @Override
