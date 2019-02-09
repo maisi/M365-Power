@@ -304,6 +304,7 @@ public class DeviceActivity extends AppCompatActivity
         checkFirst.add(RequestType.LOCK);
         checkFirst.add(RequestType.LIGHT);
         checkFirst.add(RequestType.RECOVERY);
+        checkFirst.add(RequestType.SUPERMASTER);
     }
 
     @SuppressLint("CheckResult")
