@@ -5,6 +5,7 @@ import android.util.Log;
 import maisi.M365.power.main.IRequest;
 import maisi.M365.power.main.RequestType;
 import maisi.M365.power.main.Statistics;
+import maisi.M365.power.main.srclk.ScrLkRequest;
 import maisi.M365.power.util.NbCommands;
 import maisi.M365.power.util.NbMessage;
 
@@ -68,6 +69,8 @@ public class SuperMasterRequest implements IRequest {
 
         double dist = distance;
         dist = dist / 1000;
+
+        new ScrLkRequest(dist).execute();
 
         return dist;
     }
